@@ -29,7 +29,6 @@ print("result图结构 = ", result)
 print("result图执行 = ", session.run(result))
 
 # 变量创建
-tf.V
 # 初始化、保存、加载
 
 
