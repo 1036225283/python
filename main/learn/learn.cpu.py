@@ -1,7 +1,6 @@
 import time
 import tensorflow as tf
 
-tf.enable_eager_execution
 
 def time_matmul(x):
     start = time.time()
