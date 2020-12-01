@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from PIL import Image
-import util 
+import util
 
 
 # #读取图像到数组中
@@ -13,15 +13,18 @@ import util
 img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 plt.imshow(img)
 
-text =util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
+text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
 points = util.textToPoint(text)
-
+print("points = ", points)
+points = util.pointToTensor(points)
+print("pointToTensor = ", points)
+points = util.tensorToPoint(points)
+print("tensorToPoint = ", points)
 
 
 # # 使用红色星状物标记绘制点
 for p in points:
-    plt.plot(p[0],p[1],"r_")
-
+    plt.plot(p[0], p[1], "r+")
 
 
 # #绘制前两个点的线
@@ -37,7 +40,3 @@ plt.show()
 path = "/home/xws/Downloads/300w_cropped/01_Indoor/"
 
 name = "indoor_300.png"
-
-
-
-
