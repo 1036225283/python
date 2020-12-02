@@ -13,8 +13,8 @@ import util
 img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 plt.imshow(img)
 
-text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
-points = util.textToPoint(text)
+# text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
+points = util.textToPoint("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
 print("points = ", points)
 points = util.pointToTensor(points)
 print("pointToTensor = ", points)

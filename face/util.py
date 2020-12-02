@@ -1,5 +1,9 @@
+from torchvision import transforms as tfs
+from PIL import Image, ImageDraw
 import numpy as np
 import torch
+import os
+
 
 # read file
 def readText(filePath):
@@ -12,10 +16,8 @@ def readText(filePath):
             f.close()
 
 
-str = readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
-
-
-def textToPoint(text):
+def textToPoint(path):
+    text = readText(path)
     lines = text.split("\n")
     print(len(lines))
     na = np.zeros((68, 2))
@@ -40,7 +42,7 @@ def pointToTensor(points):
     #     na[i * 2 + 1] = p[1]
 
     # print("end ")
-    return torch.from_numpy(points.reshape(68*2))
+    return torch.from_numpy(points.reshape(68 * 2))
 
 
 def tensorToPoint(tensor):
@@ -48,12 +50,73 @@ def tensorToPoint(tensor):
     return na
 
 
-a = textToPoint(str)
+# -*- coding:utf-8 -*-
+
+pic_strong = tfs.Compose([tfs.ColorJitter(0.5, 0.3, 0.3, 0.1), tfs.ToTensor()])
+
+
+def imageToTensor(path):
+    img = Image.open(path)
+    img = img.resize((20, 20))
+    imgTensor = pic_strong(img)
+    return imgTensor
+
+
+def getFiles():
+    rootdir = "/home/xws/Downloads/300w_cropped/01_Indoor"
+    a = []
+    list = os.listdir(rootdir)  # 列出文件夹下所有的目录与文件
+    for i in range(0, len(list)):
+        path = os.path.join(rootdir, list[i])
+        if os.path.isfile(path):
+            if list[i].endswith(".png"):
+                a.append((path, path.replace(".png", ".pts")))
+                # print(path, list[i].replace(".png", ".pts"))
+        # # 你想对文件的操作
+        # print(path, list[i])
+    return a
+
+
+def loadIBUG(paths):
+    datas = []
+    for path in paths:
+        imgTensor = imageToTensor(path[0])
+        point = textToPoint(path[1])
+
+        pointTensor = pointToTensor(point)
+        print("ibug = ", path[1])
+
+
+def get_all_files_and_bboxes(is_train=True):
+    if is_train:
+        file = open("/home/xws/Downloads/300w_cropped/01_Indoor")
+    else:
+        file = open("/home/xws/Downloads/300w_cropped/01_Indoor")
+    datas = []
+    for line in file:
+        if line.find(".jpg") >= 0:
+            # bboxes = getOne(file)
+            datas.append({"img": line, "bboxes": bboxes})
+        else:
+            continue
+    file.close()
+    return datas
+
+
+# a = getFiles()
+
+# loadIBUG(a)
+
+# t = imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+# print(t)
+# str = readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
+
+# a = textToPoint("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
 # for val in a:
 #     print(val[0] + val[1])
 
-na = pointToTensor(a)
-print(" na = ", na)
+# na = pointToTensor(a)
+# print(" na = ", na)
 
 # na = tensorToPoint(na)
 # print(" na = ", na)
