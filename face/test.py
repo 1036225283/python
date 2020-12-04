@@ -8,18 +8,18 @@ import util
 # im = array(Image.open('/home/xws/Downloads/boll.jpeg'))
 
 # #绘制图像
-# imshow(im)
-
-img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+img = util.tensorToImage(t)
+# img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 plt.imshow(img)
 
 # text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
 points = util.textToPoint("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
-print("points = ", points)
+# print("points = ", points)
 points = util.pointToTensor(points)
-print("pointToTensor = ", points)
+# print("pointToTensor = ", points)
 points = util.tensorToPoint(points)
-print("tensorToPoint = ", points)
+# print("tensorToPoint = ", points)
 
 
 # # 使用红色星状物标记绘制点

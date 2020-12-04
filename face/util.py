@@ -53,13 +53,22 @@ def tensorToPoint(tensor):
 # -*- coding:utf-8 -*-
 
 pic_strong = tfs.Compose([tfs.ColorJitter(0.5, 0.3, 0.3, 0.1), tfs.ToTensor()])
+unloader = tfs.ToPILImage()
 
 
 def imageToTensor(path):
     img = Image.open(path)
-    img = img.resize((20, 20))
+    print("width = ", img.size)
+    img = img.resize((416, 416))
     imgTensor = pic_strong(img)
     return imgTensor
+
+
+def tensorToImage(tensor):
+    image = tensor.cpu().clone()
+    image = image.squeeze(0)
+    image = unloader(image)
+    return image
 
 
 def getFiles():
@@ -81,10 +90,11 @@ def loadIBUG(paths):
     datas = []
     for path in paths:
         imgTensor = imageToTensor(path[0])
-        point = textToPoint(path[1])
 
+        point = textToPoint(path[1])
         pointTensor = pointToTensor(point)
-        print("ibug = ", path[1])
+        datas.append((imgTensor, pointTensor))
+    return datas
 
 
 def get_all_files_and_bboxes(is_train=True):
