@@ -58,10 +58,11 @@ unloader = tfs.ToPILImage()
 
 def imageToTensor(path):
     img = Image.open(path)
-    print("width = ", img.size)
+    width = img.size[0]
+    height = img.size[1]
     img = img.resize((416, 416))
     imgTensor = pic_strong(img)
-    return imgTensor
+    return imgTensor, width, height
 
 
 def tensorToImage(tensor):
@@ -86,14 +87,27 @@ def getFiles():
     return a
 
 
+def loadOneIBUG(path):
+    imgInfo = imageToTensor(path[0])
+    imgTensor = imgInfo[0]
+
+    width = imgInfo[1]
+    height = imgInfo[2]
+    points = textToPoint(path[1])
+    for p in points:
+        p[0] = p[0] / width
+        p[1] = p[1] / height
+    pointTensor = pointToTensor(points)
+    return (imgTensor, pointTensor)
+
+
 def loadIBUG(paths):
     datas = []
-    for path in paths:
-        imgTensor = imageToTensor(path[0])
-
-        point = textToPoint(path[1])
-        pointTensor = pointToTensor(point)
-        datas.append((imgTensor, pointTensor))
+    for i, path in enumerate(paths):
+        if i > 10:
+            continue
+        print(loadOneIBUG(path)[0].size())
+        datas.append(loadOneIBUG(path))
     return datas
 
 
@@ -113,9 +127,9 @@ def get_all_files_and_bboxes(is_train=True):
     return datas
 
 
-# a = getFiles()
+a = getFiles()
 
-# loadIBUG(a)
+loadIBUG(a)
 
 # t = imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 # print(t)

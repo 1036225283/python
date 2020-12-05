@@ -9,7 +9,7 @@ import util
 
 # #绘制图像
 t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
-img = util.tensorToImage(t)
+img = util.tensorToImage(t[0])
 # img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 plt.imshow(img)
 
