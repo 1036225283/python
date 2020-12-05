@@ -6,6 +6,7 @@ import torch.optim as optim  # 加载优化器有关包
 import torch.utils.data as Data
 from torchvision import datasets, transforms  # 加载计算机视觉有关包
 from torch.autograd import Variable
+import util
 
 BATCH_SIZE = 64
 
@@ -51,15 +52,17 @@ class Model(nn.Module):
         X = self.full1(X)
         # print("full1 size = ",X.size())
 
-        return X
-
-    # return F.relu(self.linear1(X))
+        return F.relu(X)
 
 
 model = Model()  # 实例化全连接层
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
 print("device = ", device)
+# device = "cpu"
+
+if device != "cpu":
+    model.to(device)
 
 
 # model.to(device)
@@ -79,10 +82,15 @@ for echo in range(num_epochs):
     train_loss = 0  # 定义训练损失
     train_acc = 0  # 定义训练准确度
     model.train()  # 将网络转化为训练模式
+    print("startTime = ", util.getTime())
     for i, (X, label) in enumerate(train_loader):  # 使用枚举函数遍历train_loader
         # X = X.view(-1,784)       #X:[64,1,28,28] -> [64,784]将X向量展平
-        X = Variable(X).cuda()  # 包装tensor用于自动求梯度
-        label = Variable(label).cuda()
+        if device == "cpu":
+            X = Variable(X)  # 包装tensor用于自动求梯度
+            label = Variable(label)
+        else:
+            X = Variable(X).cuda()  # 包装tensor用于自动求梯度
+            label = Variable(label).cuda()
         out = model(X)  # 正向传播
         lossvalue = loss(out, label)  # 求损失值
         optimizer.zero_grad()  # 优化器梯度归零
@@ -97,6 +105,8 @@ for echo in range(num_epochs):
         acc = int(num_correct) / X.shape[0]
         train_acc += acc
 
+    print("endTime = ", util.getTime())
+
     losses.append(train_loss / len(train_loader))
     acces.append(train_acc / len(train_loader))
     print("echo:" + " " + str(echo))
@@ -107,8 +117,13 @@ for echo in range(num_epochs):
     model.eval()  # 模型转化为评估模式
     for X, label in test_loader:
         # X = X.view(-1,784)
-        X = Variable(X).cuda()
-        label = Variable(label).cuda()
+        if device == "cpu":
+            X = Variable(X)  # 包装tensor用于自动求梯度
+            label = Variable(label)
+        else:
+            X = Variable(X).cuda()  # 包装tensor用于自动求梯度
+            label = Variable(label).cuda()
+
         testout = model(X)
         testloss = loss(testout, label)
         eval_loss += float(testloss)

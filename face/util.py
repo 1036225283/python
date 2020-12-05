@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 import torch
 import os
+import time
 
 
 # read file
@@ -127,9 +128,14 @@ def get_all_files_and_bboxes(is_train=True):
     return datas
 
 
-a = getFiles()
+def getTime():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-loadIBUG(a)
+
+getTime()
+# a = getFiles()
+
+# loadIBUG(a)
 
 # t = imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 # print(t)
