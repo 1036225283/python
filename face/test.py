@@ -37,6 +37,4 @@ plt.show()
 
 # load ibug a img and show the point
 
-path = "/home/xws/Downloads/300w_cropped/01_Indoor/"
 
-name = "indoor_300.png"
