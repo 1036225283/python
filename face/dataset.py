@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import util
 
 
-class IBUGDetectSet(Dataset):
+class IBUGDataSet(Dataset):
     def __init__(self, img_size, is_train=True, is_random=True):
         paths = util.getFiles()
         self.datas = util.loadIBUG(paths)

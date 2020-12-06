@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import util
 
-
+plt.ion()
 # #读取图像到数组中
 # im = array(Image.open('/home/xws/Downloads/boll.jpeg'))
-
+f = plt.figure()
 # #绘制图像
 t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 img = util.tensorToImage(t[0])
@@ -32,9 +32,11 @@ for p in points:
 
 # #添加标题，显示绘制的图像
 plt.title('Plotting:"pic1.png"')
+plt.ioff()
+plt.savefig("/home/xws/Downloads/python/python/face/test.png")
+# plt.show()
 
-plt.show()
+
+print("this is end")
 
 # load ibug a img and show the point
-
-
