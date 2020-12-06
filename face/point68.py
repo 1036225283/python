@@ -14,25 +14,20 @@ import dataset
 
 BATCH_SIZE = 64
 
-# 加载torchvision包内内置的MNIST数据集 这里涉及到transform:将图片转化成torchtensor
-test_dataset = datasets.MNIST(
-    root="~/data/", train=False, transform=transforms.ToTensor()
-)
-
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
 train_loader = Data.DataLoader(
-    dataset=dataset.IBUGDataSet, batch_size=BATCH_SIZE, shuffle=True
+    dataset=dataset.IBUGDataSet(), batch_size=BATCH_SIZE, shuffle=True
 )
-test_loader = Data.DataLoader(
-    dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False
-)
+
 
 # load test
 testTensor = util.imageToTensor("/home/xws/Downloads/test.jpeg")
 imgTensor = testTensor[0]
 img = util.tensorToImage(testTensor[0])
+plt.imshow(img)
 
-# 定义网络模型亦即Net 这里定义一个简单的全连接层784->10
+
+# 定义网络模型亦即Net
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -123,11 +118,12 @@ for echo in range(num_epochs):
     model.eval()  # 模型转化为评估模式
 
     if device == "cpu":
-        X = Variable(X)  # 包装tensor用于自动求梯度
-        label = Variable(label)
+        X = imgTensor  # 包装tensor用于自动求梯度
     else:
-        X = Variable(X).cuda()  # 包装tensor用于自动求梯度
-        label = Variable(label).cuda()
+        X = imgTensor.cuda()  # 包装tensor用于自动求梯度
 
     testout = model(X)
-    testloss = loss(testout, label)
+    points = util.tensorToPoint(testout)
+    for p in points:
+        plt.plot(p[0], p[1], "r+")
+    plt.savefig("/home/xws/Downloads/python/python/face/test.png")
