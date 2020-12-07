@@ -5,6 +5,8 @@ import torch
 import os
 import time
 
+torch.set_default_tensor_type(torch.DoubleTensor)
+
 
 # read file
 def readText(filePath):
@@ -43,7 +45,7 @@ def pointToTensor(points):
     #     na[i * 2 + 1] = p[1]
 
     # print("end ")
-    return torch.from_numpy(points.reshape(68 * 2))
+    return torch.from_numpy(points.reshape(68 * 2)).type(torch.DoubleTensor)
 
 
 def tensorToPoint(tensor):
@@ -63,7 +65,7 @@ def imageToTensor(path):
     height = img.size[1]
     img = img.resize((224, 224))
     imgTensor = pic_strong(img)
-    return imgTensor, width, height
+    return imgTensor.type(torch.DoubleTensor), width, height
 
 
 def tensorToImage(tensor):

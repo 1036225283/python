@@ -11,6 +11,8 @@ from PIL import Image
 import util
 import dataset
 
+torch.set_default_tensor_type(torch.DoubleTensor)
+
 
 BATCH_SIZE = 64
 
@@ -90,15 +92,13 @@ for echo in range(num_epochs):
     print("startTime = ", util.getTime())
     for i, (X, label) in enumerate(train_loader):  # 使用枚举函数遍历train_loader
         # X = X.view(-1,784)       #X:[64,1,28,28] -> [64,784]将X向量展平
-        print("x.size = ", X.size())
-        if device == "cpu":
-            X = Variable(X)  # 包装tensor用于自动求梯度
-            label = Variable(label)
-        else:
-            X = Variable(X).cuda()  # 包装tensor用于自动求梯度
-            label = Variable(label).cuda()
+        if device != "cpu":
+            X = X.cuda()  # 包装tensor用于自动求梯度
+            label = label.cuda()
         out = model(X)  # 正向传播
-        lossvalue = loss(out, label)  # 求损失值
+        # lossvalue = loss(out, label)  # 求损失值
+        lossvalue = torch.nn.functional.smooth_l1_loss(out, label)
+
         optimizer.zero_grad()  # 优化器梯度归零
         lossvalue.backward()  # 反向转播，刷新梯度值
         optimizer.step()  # 优化器运行一步，注意optimizer搜集的是model的参数
@@ -119,8 +119,9 @@ for echo in range(num_epochs):
     else:
         X = imgTensor.cuda()  # 包装tensor用于自动求梯度
 
+    X = X.view(1, 3, 224, 224)
     testout = model(X)
-    points = util.tensorToPoint(testout)
+    points = util.tensorToPoint(testout.cpu().detach())
     for p in points:
         plt.plot(p[0], p[1], "r+")
     plt.savefig("/home/xws/Downloads/python/python/face/test.png")
