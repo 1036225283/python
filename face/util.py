@@ -20,7 +20,7 @@ def readText(filePath):
 def textToPoint(path):
     text = readText(path)
     lines = text.split("\n")
-    print(len(lines))
+    # print(len(lines))
     na = np.zeros((68, 2))
     for i, val in enumerate(lines):
         # print("序号：%s   值：%s" % (i + 1, val))
@@ -61,7 +61,7 @@ def imageToTensor(path):
     img = Image.open(path)
     width = img.size[0]
     height = img.size[1]
-    img = img.resize((416, 416))
+    img = img.resize((224, 224))
     imgTensor = pic_strong(img)
     return imgTensor, width, height
 
@@ -107,7 +107,7 @@ def loadIBUG(paths):
     for i, path in enumerate(paths):
         if i > 10:
             continue
-        print(loadOneIBUG(path)[0].size())
+        # print(loadOneIBUG(path)[0].size())
         datas.append(loadOneIBUG(path))
     return datas
 
