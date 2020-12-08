@@ -17,7 +17,7 @@ torch.set_default_tensor_type(torch.DoubleTensor)
 
 BATCH_SIZE = 64
 MODEL_SAVE_PATH = "./model/point68.pt"
-EPOCH = 100
+EPOCH = 200
 
 
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取

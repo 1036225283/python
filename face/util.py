@@ -107,9 +107,13 @@ def loadOneIBUG(path):
 def loadIBUG(paths):
     datas = []
     for i, path in enumerate(paths):
-        if i > 10:
+        if i > 64:
             continue
-        # print(loadOneIBUG(path)[0].size())
+
+        data = loadOneIBUG(path)
+        if data[0].size()[0] != 3:
+            continue
+        # print(data[0].size()[0])
         datas.append(loadOneIBUG(path))
     return datas
 
