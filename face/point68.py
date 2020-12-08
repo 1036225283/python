@@ -10,11 +10,15 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import util
 import dataset
+import os
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 
 
 BATCH_SIZE = 64
+MODEL_SAVE_PATH = "./model/point68.pt"
+EPOCH = 100
+
 
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
 train_loader = Data.DataLoader(
@@ -70,6 +74,15 @@ class Model(nn.Module):
 
 
 model = Model()  # 实例化全连接层
+
+if os.path.exists(MODEL_SAVE_PATH):
+    print("loading ...")
+    state = torch.load(MODEL_SAVE_PATH)
+    model.load_state_dict(state["net"])
+    start_epoch = state["epoch"]
+    print("loading over")
+
+
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
 print("device = ", device)
@@ -79,14 +92,13 @@ if device != "cpu":
     model.to(device)
 
 
-# model.to(device)
 # model = model.cuda()
 
 loss = nn.CrossEntropyLoss()  # 损失函数选择，交叉熵函数
 optimizer = optim.SGD(model.parameters(), lr=0.1)
-num_epochs = 10
 
-for echo in range(num_epochs):
+epoch = 0
+for epoch in range(EPOCH):
     train_loss = 0  # 定义训练损失
     model.train()  # 将网络转化为训练模式
     print("startTime = ", util.getTime())
@@ -108,7 +120,7 @@ for echo in range(num_epochs):
 
     print("endTime = ", util.getTime())
 
-    print("echo:" + " " + str(echo))
+    print("epoch:" + " " + str(epoch))
     print("lose:" + " " + str(train_loss / len(train_loader)))
     eval_loss = 0
     eval_acc = 0
@@ -123,5 +135,16 @@ for echo in range(num_epochs):
     testout = model(X)
     points = util.tensorToPoint(testout.cpu().detach())
     for p in points:
-        plt.plot(p[0], p[1], "r+")
-    plt.savefig("/home/xws/Downloads/python/python/face/test.png")
+        plt.plot(p[0] * 224, p[1] * 224, "r+")
+
+    plt.savefig("/home/xws/Downloads/python/python/face/test" + str(epoch) + ".png")
+    plt.cla()
+    plt.imshow(img)
+
+if not os.path.isdir("model"):
+    os.mkdir("model")
+state = {
+    "net": model.state_dict(),
+    "epoch": epoch,
+}
+torch.save(state, MODEL_SAVE_PATH)
