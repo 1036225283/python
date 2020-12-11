@@ -87,6 +87,8 @@ def getFiles():
                 # print(path, list[i].replace(".png", ".pts"))
         # # 你想对文件的操作
         # print(path, list[i])
+
+    a.sort(key=lambda a: a[0])
     return a
 
 
@@ -107,7 +109,7 @@ def loadOneIBUG(path):
 def loadIBUG(paths):
     datas = []
     for i, path in enumerate(paths):
-        if i > 64:
+        if i > 300:
             continue
 
         data = loadOneIBUG(path)

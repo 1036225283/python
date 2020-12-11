@@ -8,13 +8,15 @@ plt.ion()
 # im = array(Image.open('/home/xws/Downloads/boll.jpeg'))
 f = plt.figure()
 # #绘制图像
-t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
 img = util.tensorToImage(t[0])
 # img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
 plt.imshow(img)
+width = t[1]
+height = t[2]
 
 # text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
-points = util.textToPoint("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
+points = util.textToPoint("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts")
 # print("points = ", points)
 points = util.pointToTensor(points)
 # print("pointToTensor = ", points)
