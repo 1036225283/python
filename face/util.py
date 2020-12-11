@@ -109,8 +109,8 @@ def loadOneIBUG(path):
 
 def loadIBUG(paths):
     datas = []
-    for i, path in enumerate(paths):
-        if i > Config.DATA_SIEZ:
+    for path in paths:
+        if len(datas) >= Config.DATA_SIZE:
             continue
 
         print("path = ", path)

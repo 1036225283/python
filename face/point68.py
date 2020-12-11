@@ -40,7 +40,27 @@ img = util.tensorToImage(testTensor[0])
 plt.imshow(img)
 
 
-# 定义网络模型亦即Net
+def show(plt, X, L):
+    plt.cla()
+    img = util.tensorToImage(X)
+    plt.imshow(img)
+    points = util.tensorToPoint(L.cpu().detach())
+    for p in points:
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
+    plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
+
+
+def show2(plt, X, O, N):
+    plt.cla()
+    img = util.tensorToImage(X)
+    plt.imshow(img)
+    points = util.tensorToPoint(O.cpu().detach())
+    for p in points:
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r_")
+    points = util.tensorToPoint(N.cpu().detach())
+    for p in points:
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "g|")
+    plt.savefig("/home/xws/Downloads/python/python/face/img/testt0.png")
 
 
 model = models.Point68()  # 实例化全连接层
@@ -64,10 +84,12 @@ if device != "cpu":
 
 # model = model.cuda()
 
-optimizer = optim.SGD(model.parameters(), lr=0.005 * math.e)
+optimizer = optim.SGD(model.parameters(), lr=0.0001 * math.e)
+ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
+
 # optimizer = optim.SGD(model.parameters(), lr=1 * math.e, momentum=0.9)
 # optimizer = optim.Adam(model.parameters(), lr=0.000005 * math.e)
-loss_fn = torch.nn.MSELoss(reduce=False, size_average=False)
+loss_fn = torch.nn.MSELoss(reduce=True, size_average=False)
 epoch = 0
 for epoch in range(Config.EPOCH):
     train_loss = 0  # 定义训练损失
@@ -75,20 +97,16 @@ for epoch in range(Config.EPOCH):
     # print("startTime = ", util.getTime())
     for i, (X, label) in enumerate(train_loader):  # 使用枚举函数遍历train_loader
         if device != "cpu":
-            plt.cla()
-            img = util.tensorToImage(X)
-            plt.imshow(img)
-            plt.savefig(
-                "/home/xws/Downloads/python/python/face/img/test" + str(epoch) + ".png"
-            )
+            # show(plt, X, label)
             X = X.cuda()  # 包装tensor用于自动求梯度
             label = label.cuda()
 
-        for x in range(10):
+        for x in range(1):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
-            # lossvalue = torch.nn.functional.smooth_l1_loss(out, label)
-            lossvalue = torch.sum(loss_fn(out, label))
+
+            lossvalue = torch.nn.functional.smooth_l1_loss(label, out)
+            # lossvalue = loss_fn(out, label)
             print("lossvalue = ", lossvalue)
 
             lossvalue.backward()  # 反向转播，刷新梯度值
@@ -96,34 +114,26 @@ for epoch in range(Config.EPOCH):
 
             # 计算损失
             train_loss += float(lossvalue)
+            if epoch % 20 == 0:
+                show2(plt, X, label, out)
+                state = {
+                    "net": model.state_dict(),
+                    "epoch": epoch,
+                }
+                torch.save(state, MODEL_SAVE_PATH)
 
     # print("endTime = ", util.getTime())
 
     # print("epoch:" + " " + str(epoch))
-    if epoch % 2 == 0:
-        print("epoch:" + " " + str(epoch))
+    # if epoch % 10 == 0:
+    #     print("epoch:" + " " + str(epoch))
 
-        model.eval()  # 模型转化为评估模式
+    #     model.eval()  # 模型转化为评估模式
 
-        if device == "cpu":
-            X = imgTensor  # 包装tensor用于自动求梯度
-        else:
-            X = imgTensor.cuda()  # 包装tensor用于自动求梯度
+    #     if device == "cpu":
+    #         X = imgTensor  # 包装tensor用于自动求梯度
+    #     else:
+    #         X = imgTensor.cuda()  # 包装tensor用于自动求梯度
 
-        X = X.view(1, 3, 224, 224)
-        testout = model(X)
-        points = util.tensorToPoint(testout.cpu().detach())
-        for p in points:
-            plt.plot(p[0] * 224, p[1] * 224, "r+")
-
-        plt.savefig(
-            "/home/xws/Downloads/python/python/face/img/test" + str(epoch) + ".png"
-        )
-        plt.cla()
-        plt.imshow(img)
-
-        state = {
-            "net": model.state_dict(),
-            "epoch": epoch,
-        }
-        torch.save(state, MODEL_SAVE_PATH)
+    #     X = X.view(1, 3, 224, 224)
+    #     testout = model(X)
