@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import os
 import time
+import Config
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -63,7 +64,7 @@ def imageToTensor(path):
     img = Image.open(path)
     width = img.size[0]
     height = img.size[1]
-    img = img.resize((224, 224))
+    img = img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
     imgTensor = pic_strong(img)
     return imgTensor.type(torch.DoubleTensor), width, height
 
@@ -109,9 +110,10 @@ def loadOneIBUG(path):
 def loadIBUG(paths):
     datas = []
     for i, path in enumerate(paths):
-        if i > 300:
+        if i > Config.DATA_SIEZ:
             continue
 
+        print("path = ", path)
         data = loadOneIBUG(path)
         if data[0].size()[0] != 3:
             continue
@@ -140,7 +142,10 @@ def getTime():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
 
-getTime()
+if __name__ == "__main__":
+    getTime()
+
+
 # a = getFiles()
 
 # loadIBUG(a)
