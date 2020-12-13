@@ -1,4 +1,5 @@
 from torchvision import transforms as tfs
+import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import numpy as np
 import torch
@@ -6,7 +7,7 @@ import os
 import time
 import Config
 
-torch.set_default_tensor_type(torch.DoubleTensor)
+# torch.set_default_tensor_type(torch.DoubleTensor)
 
 
 # read file
@@ -141,6 +142,15 @@ def get_all_files_and_bboxes(is_train=True):
 def getTime():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
+
+def show(plt, X, L):
+    plt.cla()
+    img = tensorToImage(X)
+    plt.imshow(img)
+    points = tensorToPoint(L.cpu().detach())
+    for p in points:
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
+    plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
 
 if __name__ == "__main__":
     getTime()
