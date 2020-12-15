@@ -14,8 +14,11 @@ import os
 import math
 import model as models
 import Config
+import numpy as np
 
 torch.set_default_tensor_type(torch.DoubleTensor)
+torch.set_printoptions(precision=8)
+min = np.finfo(np.float64).eps.item()
 
 
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
@@ -27,14 +30,27 @@ train_loader = Data.DataLoader(
 
 
 # load test
-# testTensor = util.imageToTensor("/home/xws/Downloads/test.jpeg")
-testTensor = util.imageToTensor(
-    "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
-)
+testTensor = util.imageToTensor("/home/xws/Downloads/test.jpeg")
+# testTensor = util.imageToTensor(
+#     "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
+# )
 imgTensor = testTensor[0]
 
 img = util.tensorToImage(testTensor[0])
 plt.imshow(img)
+
+
+def test():
+    model.eval()  # 模型转化为评估模式
+
+    if device == "cpu":
+        X = imgTensor  # 包装tensor用于自动求梯度
+    else:
+        X = imgTensor.cuda()  # 包装tensor用于自动求梯度
+
+    X = X.view(1, 3, 224, 224)
+    testout = model(X)
+    show(plt, X, testout)
 
 
 def show(plt, X, L):
@@ -102,17 +118,21 @@ for epoch in range(Config.EPOCH):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
 
-            lossvalue = torch.nn.functional.smooth_l1_loss(label, out)
+            sub = torch.sub(label, out).mul(torch.sub(label, out)) * 5
+            sum = torch.sum(sub)
+            # log = torch.log(sub)
+            # lossvalue = torch.nn.functional.smooth_l1_loss(label, out)
             # lossvalue = loss_fn(out, label)
-            print("lossvalue = ", lossvalue)
+            print("lossvalue = ", sum)
 
-            lossvalue.backward()  # 反向转播，刷新梯度值
+            sum.backward()  # 反向转播，刷新梯度值
             optimizer.step()  # 优化器运行一步，注意optimizer搜集的是model的参数
 
             # 计算损失
-            train_loss += float(lossvalue)
+            # train_loss += float(lossvalue)
         if epoch % 20 == 0:
-            show2(plt, X, label, out)
+            # show2(plt, X, label, out)
+            test()
             state = {
                 "net": model.state_dict(),
                 "epoch": epoch,
@@ -124,13 +144,3 @@ for epoch in range(Config.EPOCH):
     # print("epoch:" + " " + str(epoch))
     # if epoch % 10 == 0:
     #     print("epoch:" + " " + str(epoch))
-
-    #     model.eval()  # 模型转化为评估模式
-
-    #     if device == "cpu":
-    #         X = imgTensor  # 包装tensor用于自动求梯度
-    #     else:
-    #         X = imgTensor.cuda()  # 包装tensor用于自动求梯度
-
-    #     X = X.view(1, 3, 224, 224)
-    #     testout = model(X)

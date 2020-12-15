@@ -15,6 +15,7 @@ class IBUGDataSet(Dataset):
         self.batchSize = batchSize
         paths = util.getFiles()
         self.datas = util.loadIBUG(paths)
+        print("datas.length = ",len(self.datas))
 
     def __len__(self):
         if len(self.datas) < self.batchSize:
