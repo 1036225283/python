@@ -18,9 +18,6 @@ import Config
 torch.set_default_tensor_type(torch.DoubleTensor)
 
 
-MODEL_SAVE_PATH = "/home/xws/Downloads/python/python/face/model/point68.pt"
-
-
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
 train_loader = Data.DataLoader(
     dataset=dataset.IBUGDataSet(Config.BATCH_SIZE),
@@ -65,9 +62,9 @@ def show2(plt, X, O, N):
 
 model = models.Point68()  # 实例化全连接层
 
-if os.path.isfile(MODEL_SAVE_PATH):
+if os.path.isfile(Config.MODEL_SAVE_PATH):
     print("loading ...")
-    state = torch.load(MODEL_SAVE_PATH)
+    state = torch.load(Config.MODEL_SAVE_PATH)
     model.load_state_dict(state["net"])
     start_epoch = state["epoch"]
     print("loading over")
@@ -84,7 +81,7 @@ if device != "cpu":
 
 # model = model.cuda()
 
-optimizer = optim.SGD(model.parameters(), lr=0.0001 * math.e)
+optimizer = optim.ASGD(model.parameters(), lr=0.0001 * math.e)
 ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
 
 # optimizer = optim.SGD(model.parameters(), lr=1 * math.e, momentum=0.9)
@@ -101,7 +98,7 @@ for epoch in range(Config.EPOCH):
             X = X.cuda()  # 包装tensor用于自动求梯度
             label = label.cuda()
 
-        for x in range(1):
+        for x in range(10):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
 
@@ -114,13 +111,13 @@ for epoch in range(Config.EPOCH):
 
             # 计算损失
             train_loss += float(lossvalue)
-            if epoch % 20 == 0:
-                show2(plt, X, label, out)
-                state = {
-                    "net": model.state_dict(),
-                    "epoch": epoch,
-                }
-                torch.save(state, MODEL_SAVE_PATH)
+        if epoch % 20 == 0:
+            show2(plt, X, label, out)
+            state = {
+                "net": model.state_dict(),
+                "epoch": epoch,
+            }
+            torch.save(state, Config.MODEL_SAVE_PATH)
 
     # print("endTime = ", util.getTime())
 

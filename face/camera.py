@@ -8,9 +8,16 @@ import util
 import Config
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 model = models.Point68()  # 实例化全连接层
+if os.path.isfile(Config.MODEL_SAVE_PATH):
+    print("loading ...")
+    state = torch.load(Config.MODEL_SAVE_PATH)
+    model.load_state_dict(state["net"])
+    start_epoch = state["epoch"]
+    print("loading over")
 model.eval()
 
 torch.set_default_tensor_type(torch.DoubleTensor)
