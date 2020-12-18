@@ -119,7 +119,7 @@ def loadIBUG(paths):
         if data[0].size()[0] != 3:
             continue
         # print(data[0].size()[0])
-        datas.append(loadOneIBUG(path))
+        datas.append(data)
     return datas
 
 
@@ -151,6 +151,7 @@ def show(plt, X, L):
     for p in points:
         plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
     plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
+
 
 if __name__ == "__main__":
     getTime()

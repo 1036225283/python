@@ -105,6 +105,9 @@ ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
 loss_fn = torch.nn.MSELoss(reduce=True, size_average=False)
 epoch = 0
 for epoch in range(Config.EPOCH):
+    print(
+        "**************************************************************epoch = ", epoch
+    )
     train_loss = 0  # 定义训练损失
     model.train()  # 将网络转化为训练模式
     # print("startTime = ", util.getTime())
@@ -114,30 +117,60 @@ for epoch in range(Config.EPOCH):
             X = X.cuda()  # 包装tensor用于自动求梯度
             label = label.cuda()
 
-        for x in range(10):
+        for x in range(8):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
+            # loss1
+            # sub = torch.sub(label, out)
+            # sub = torch.square(sub)
+            # sub = sub * 10
+            # lossvalue = torch.sum(sub)
+            # loss2
+            label = label.view(-1, 68, 2)
+            out = out.view(-1, 68, 2)
+            lossvalue = torch.zeros(1).cuda()
+            for l, o in zip(label, out):
+                # print(l.size(), o.size())
+                for lp, op in zip(l, o):
+                    subx = torch.sub(lp[0], op[0])
+                    suby = torch.sub(lp[1], op[1])
+                    subx = subx * 5
+                    suby = suby * 5
+                    z = torch.square(subx).add(torch.square(suby))
 
-            sub = torch.sub(label, out).mul(torch.sub(label, out)) * 5
-            sum = torch.sum(sub)
+                    z = torch.sqrt(z)
+                    lossvalue = torch.add(lossvalue, z)
+
+            # print("lp = ", z)
+            # print("dd")
+
             # log = torch.log(sub)
-            # lossvalue = torch.nn.functional.smooth_l1_loss(label, out)
+            # sum = torch.nn.functional.smooth_l1_loss(label, out)
             # lossvalue = loss_fn(out, label)
-            print("lossvalue = ", sum)
 
-            sum.backward()  # 反向转播，刷新梯度值
+            lossvalue.backward()  # 反向转播，刷新梯度值
             optimizer.step()  # 优化器运行一步，注意optimizer搜集的是model的参数
+            # print("i = ", i)
 
             # 计算损失
             # train_loss += float(lossvalue)
-        if epoch % 20 == 0:
-            # show2(plt, X, label, out)
+        if i % 10 == 0:
+            show2(plt, X, label, out)
+            print("lossvalue = ", lossvalue)
             test()
             state = {
                 "net": model.state_dict(),
                 "epoch": epoch,
             }
             torch.save(state, Config.MODEL_SAVE_PATH)
+
+    print("lossvalue = ", lossvalue)
+    test()
+    state = {
+        "net": model.state_dict(),
+        "epoch": epoch,
+    }
+    torch.save(state, Config.MODEL_SAVE_PATH)
 
     # print("endTime = ", util.getTime())
 
