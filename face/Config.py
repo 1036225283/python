@@ -1,6 +1,12 @@
-DATA_SIZE = 200
+import model as models
+
+
+DATA_SIZE = 300
 IMAGE_SIZE = 224
-BATCH_SIZE = 10
+BATCH_SIZE = 1
 EPOCH = 800
-# MODEL_SAVE_PATH = "/home/xws/Downloads/python/python/face/model/point68.pt"
-MODEL_SAVE_PATH = "/home/xws/Downloads/python/python/face/model/point68_relu.pt"
+
+model = models.Point68_residual
+MODEL_SAVE_PATH = model.path
+
+print(MODEL_SAVE_PATH)

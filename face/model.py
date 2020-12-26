@@ -146,6 +146,7 @@ class Bottleneck(nn.Module):
 class Bottleneck3(nn.Module):
     def __init__(self, input, output, stride=1, use_res_connect=True, expand_ratio=2):
         super(Bottleneck3, self).__init__()
+        the_stride = stride
         self.conv1 = nn.Conv2d(
             input, input * expand_ratio, kernel_size=1, stride=1, padding=0, bias=False
         )
@@ -154,7 +155,7 @@ class Bottleneck3(nn.Module):
             input * expand_ratio,
             input * expand_ratio,
             kernel_size=3,
-            stride=1,
+            stride=the_stride,
             padding=1,
             bias=False,
         )
@@ -246,58 +247,63 @@ class Point682(nn.Module):
         return X
 
 
-class Point68(nn.Module):
+class Point68PLDF(nn.Module):
+    path = "/home/xws/Downloads/python/python/face/model/point68_pldf.pt"
+
     def __init__(self):
-        super(Point68, self).__init__()
-        self.conv_first = BaseBlock(3, 68, 3, 1, 1)
-        self.max_pool_1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.max_pool_2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.max_pool_3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.avg_pool_1 = nn.AvgPool2d(kernel_size=2, stride=2)
-        self.avg_pool_2 = nn.AvgPool2d(kernel_size=2, stride=2)
-        self.conv_112_1 = Bottleneck3(68, 68, 1, True)
-        self.conv_112_2 = Bottleneck3(68, 68, 1, True)
-        self.conv_112_3 = Bottleneck3(68, 68, 1, True)
-        self.conv_112_4 = Bottleneck3(68, 68, 1, False)
-        self.conv_56_1 = Bottleneck3(68, 68, 1, True)
-        self.conv_56_2 = Bottleneck3(68, 68, 1, True)
-        self.conv_56_3 = Bottleneck3(68, 68, 1, True)
-        self.conv_28 = Bottleneck3(68, 68, 1, True)
-        self.conv_14 = Bottleneck3(68, 64, 1, False)
-        self.bx3 = Bottleneck3(68, 68, 1, True)
-        self.bx4 = Bottleneck3(68, 68, 1, True)
-        self.bx5 = Bottleneck3(68, 64, 1, False)
-        self.full1 = nn.Linear(7 * 7 * 64, 68 * 2)
+        super(Point68PLDF, self).__init__()
+        self.conv_first = BaseBlock(3, 64, 3, 2, 1)
+        self.conv_second = BaseBlock(64, 64, 3, 2, 1)
+        self.avg_pool_14 = nn.AvgPool2d(14)
+        self.avg_pool_7 = nn.AvgPool2d(7)
+        self.conv_56_1 = Bottleneck3(64, 64, 1, True)
+        self.conv_56_2 = Bottleneck3(64, 64, 2, False)
+        self.conv_28_1 = Bottleneck3(64, 64, 1, True)
+        self.conv_28_2 = Bottleneck3(64, 64, 1, True)
+        self.conv_28_3 = Bottleneck3(64, 128, 2, False)
+        self.conv_14_1 = Bottleneck3(128, 128, 1, True, 4)
+        self.conv_14_2 = Bottleneck3(128, 128, 1, True, 4)
+        self.conv_14_3 = Bottleneck3(128, 128, 1, True, 4)
+        self.conv_14_4 = Bottleneck3(128, 128, 1, True, 4)
+        self.conv_14_5 = Bottleneck3(128, 16, 1, False, 4)
+        self.conv_o2 = BaseBlock(16, 32, 3, 2, 1)
+        self.full1 = nn.Linear(184, 68 * 2)
         self.relu = nn.ReLU()
         self.se = nn.Sigmoid()
         self.tanh = nn.Tanh()
-        self.conv_last = nn.Conv2d(64, 68 * 2, kernel_size=7, bias=False, padding=0)
+        self.conv_last = nn.Conv2d(32, 68 * 2, kernel_size=7, bias=False, padding=0)
 
     def forward(self, x):
         # vgg to get feature
-        x = self.conv_first(x)  # 224
-        x = self.max_pool_1(x)  # 112
-        x = self.conv_112_1(x)  # 112
-        x = self.conv_112_2(x)  # 112
-        x = self.conv_112_3(x)  # 112
-        x = self.conv_112_4(x)  # 112
-        x = self.max_pool_2(x)  # 56
-        x = self.conv_56_1(x)  # 56
-        x = self.conv_56_2(x)  # 56
-        x = self.conv_56_3(x)  # 56
-        x = self.max_pool_3(x)  # 28
-        x = self.conv_28(x)  # 28
-        x = self.avg_pool_1(x)  # 14
-        x = self.conv_14(x)  # 14
-        x = self.avg_pool_2(x)  # 7
+        x = self.conv_first(x)  # 112
+        x = self.conv_second(x)  # 56
+        x = self.conv_56_1(x)
+        x = self.conv_56_2(x)
+        x = self.conv_28_1(x)
+        x = self.conv_28_2(x)
+        x = self.conv_28_3(x)
+        x = self.conv_14_1(x)
+        x = self.conv_14_2(x)
+        x = self.conv_14_3(x)
+        x = self.conv_14_4(x)
+        x = self.conv_14_5(x)
+        o1 = self.avg_pool_14(x)
+        o1 = o1.view(o1.size(0), -1)
+        x = self.conv_o2(x)
+        o2 = self.avg_pool_7(x)  # 7
+        o2 = o2.view(o2.size(0), -1)
 
         # X = x3.view(-1, 7 * 7 * 64)
         # X = self.full1(X)
         # X = self.se(X)
-        X = self.conv_last(x)
-        X = self.se(X)
+        o3 = self.conv_last(x)
+        o3 = o3.view(o3.size(0), -1)
 
-        return X
+        o = torch.cat([o1, o2, o3], 1)
+        o = self.full1(o)
+        o = self.se(o)
+
+        return o
 
 
 class Model(nn.Module):
@@ -351,6 +357,98 @@ class Model(nn.Module):
         X = self.tanh(X)
 
         return X
+
+
+class Point68_max(nn.Module):
+    path = "/home/xws/Downloads/python/python/face/model/point68_max.pt"
+
+    def __init__(self):
+        super(Point68_max, self).__init__()
+        self.conv_first = BaseBlock(3, 68, 3, 1, 1)
+        self.max_pool_1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.max_pool_2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.max_pool_3 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.avg_pool_1 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.avg_pool_2 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.conv_112_1 = Bottleneck3(68, 68, 1, True)
+        self.conv_112_2 = Bottleneck3(68, 68, 1, True)
+        self.conv_112_3 = Bottleneck3(68, 68, 1, True)
+        self.conv_112_4 = Bottleneck3(68, 68, 1, False)
+        self.conv_56_1 = Bottleneck3(68, 68, 1, True)
+        self.conv_56_2 = Bottleneck3(68, 68, 1, True)
+        self.conv_56_3 = Bottleneck3(68, 68, 1, True)
+        self.conv_28 = Bottleneck3(68, 68, 1, True)
+        self.conv_14 = Bottleneck3(68, 64, 1, False)
+        self.bx3 = Bottleneck3(68, 68, 1, True)
+        self.bx4 = Bottleneck3(68, 68, 1, True)
+        self.bx5 = Bottleneck3(68, 64, 1, False)
+        self.full1 = nn.Linear(7 * 7 * 64, 68 * 2)
+        self.relu = nn.ReLU()
+        self.se = nn.Sigmoid()
+        self.tanh = nn.Tanh()
+        self.conv_last = nn.Conv2d(64, 68 * 2, kernel_size=7, bias=False, padding=0)
+
+    def forward(self, x):
+        # vgg to get feature
+        x = self.conv_first(x)  # 224
+        x = self.max_pool_1(x)  # 112
+        x = self.conv_112_1(x)  # 112
+        x = self.conv_112_2(x)  # 112
+        x = self.conv_112_3(x)  # 112
+        x = self.conv_112_4(x)  # 112
+        x = self.max_pool_2(x)  # 56
+        x = self.conv_56_1(x)  # 56
+        x = self.conv_56_2(x)  # 56
+        x = self.conv_56_3(x)  # 56
+        x = self.max_pool_3(x)  # 28
+        x = self.conv_28(x)  # 28
+        x = self.avg_pool_1(x)  # 14
+        x = self.conv_14(x)  # 14
+        x = self.avg_pool_2(x)  # 7
+
+        # X = x3.view(-1, 7 * 7 * 64)
+        # X = self.full1(X)
+        # X = self.se(X)
+        X = self.conv_last(x)
+        X = self.se(X)
+
+        return X
+
+
+# 残差无多尺寸
+class Point68_residual(nn.Module):
+    path = "/home/xws/Downloads/python/python/face/model/point68_residual.pt"
+
+    def __init__(self):
+        super(Point68_residual, self).__init__()
+        self.conv_first = BaseBlock(3, 64, 3, 2, 1)
+        self.conv_second = BaseBlock(64, 64, 3, 2, 1)
+        self.conv_56_1 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_2 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_3 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_4 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_5 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_6 = Bottleneck3(64, 64, 2, True)
+        self.full1 = nn.Linear(184, 68 * 2)
+        self.relu = nn.ReLU()
+        self.se = nn.Sigmoid()
+        self.tanh = nn.Tanh()
+        self.conv_last = nn.Conv2d(64, 68 * 2, kernel_size=56, bias=False, padding=0)
+
+    def forward(self, x):
+        # vgg to get feature
+        x = self.conv_first(x)  # 112
+        x = self.conv_second(x)  # 56
+        x1 = self.conv_56_1(x)
+        x2 = self.conv_56_2(x1)
+        x3 = self.conv_56_3(x2 + x1)
+        x4 = self.conv_56_4(x3 + x2)
+        x5 = self.conv_56_5(x4 + x3)
+        x6 = self.conv_56_6(x5 + x4)
+        o = self.conv_last(x6)
+        o = self.se(o)
+
+        return o
 
 
 if __name__ == "__main__":

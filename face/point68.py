@@ -76,7 +76,7 @@ def show2(plt, X, O, N):
     plt.savefig("/home/xws/Downloads/python/python/face/img/testt0.png")
 
 
-model = models.Point68()  # 实例化全连接层
+model = Config.model()
 
 if os.path.isfile(Config.MODEL_SAVE_PATH):
     print("loading ...")
@@ -130,12 +130,13 @@ for epoch in range(Config.EPOCH):
             out = out.view(-1, 68, 2)
             lossvalue = torch.zeros(1).cuda()
             for l, o in zip(label, out):
+                
                 # print(l.size(), o.size())
                 for lp, op in zip(l, o):
                     subx = torch.sub(lp[0], op[0])
                     suby = torch.sub(lp[1], op[1])
-                    subx = subx * 5
-                    suby = suby * 5
+                    subx = subx * 2.5
+                    suby = suby * 2.5
                     z = torch.square(subx).add(torch.square(suby))
 
                     z = torch.sqrt(z)
@@ -155,7 +156,7 @@ for epoch in range(Config.EPOCH):
             # 计算损失
             # train_loss += float(lossvalue)
         if i % 10 == 0:
-            show2(plt, X, label, out)
+            # show2(plt, X, label, out)
             print("lossvalue = ", lossvalue)
             test()
             state = {
