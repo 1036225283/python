@@ -15,10 +15,18 @@ import math
 import model as models
 import Config
 import numpy as np
+import random
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 torch.set_printoptions(precision=8)
 min = np.finfo(np.float64).eps.item()
+
+seed = 100
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+np.random.seed(seed)  # Numpy module.
+random.seed(seed)  # Python random module.
 
 
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
@@ -48,7 +56,7 @@ def test():
     else:
         X = imgTensor.cuda()  # 包装tensor用于自动求梯度
 
-    X = X.view(1, 3, 224, 224)
+    X = X.view(1, 3, Config.IMAGE_SIZE, Config.IMAGE_SIZE)
     testout = model(X)
     show(plt, X, testout)
 
@@ -117,7 +125,7 @@ for epoch in range(Config.EPOCH):
             X = X.cuda()  # 包装tensor用于自动求梯度
             label = label.cuda()
 
-        for x in range(8):
+        for x in range(3):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
             # loss1
@@ -128,9 +136,11 @@ for epoch in range(Config.EPOCH):
             # loss2
             label = label.view(-1, 68, 2)
             out = out.view(-1, 68, 2)
+            label1 = label * 1.5
+            out1 = out * 1.5
             lossvalue = torch.zeros(1).cuda()
-            for l, o in zip(label, out):
-                
+            for l, o in zip(label1, out1):
+
                 # print(l.size(), o.size())
                 for lp, op in zip(l, o):
                     subx = torch.sub(lp[0], op[0])
@@ -148,9 +158,10 @@ for epoch in range(Config.EPOCH):
             # log = torch.log(sub)
             # sum = torch.nn.functional.smooth_l1_loss(label, out)
             # lossvalue = loss_fn(out, label)
-
+            # print("b ", list(model.conv_last.named_parameters())[0])
             lossvalue.backward()  # 反向转播，刷新梯度值
             optimizer.step()  # 优化器运行一步，注意optimizer搜集的是model的参数
+            # print("a ", list(model.conv_last.named_parameters())[0])
             # print("i = ", i)
 
             # 计算损失

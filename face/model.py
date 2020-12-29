@@ -204,9 +204,11 @@ class BaseBlock(nn.Module):
         return x
 
 
-class Point682(nn.Module):
+class Point68_y(nn.Module):
+    path = "/home/xws/Downloads/python/python/face/model/point68_y.pt"
+
     def __init__(self):
-        super(Point68, self).__init__()
+        super(Point68_y, self).__init__()
         self.b1 = BaseBlock(3, 68, 5, 1, 2)
         self.down_sample = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bx1 = Bottleneck(68, 68, 1)
@@ -235,8 +237,7 @@ class Point682(nn.Module):
         x1 = self.bx3(x1)  # 52
         x2 = self.down_sample(x1)  # 26
         x2 = self.bx4(x2)  # 26
-        x3 = self.down_sample(x2)  # 13
-        x3 = self.bx5(x3)
+        x3 = self.bx5(x2)
 
         # X = x3.view(-1, 7 * 7 * 64)
         # X = self.full1(X)
@@ -423,17 +424,21 @@ class Point68_residual(nn.Module):
         super(Point68_residual, self).__init__()
         self.conv_first = BaseBlock(3, 64, 3, 2, 1)
         self.conv_second = BaseBlock(64, 64, 3, 2, 1)
-        self.conv_56_1 = Bottleneck3(64, 64, 2, True)
-        self.conv_56_2 = Bottleneck3(64, 64, 2, True)
-        self.conv_56_3 = Bottleneck3(64, 64, 2, True)
-        self.conv_56_4 = Bottleneck3(64, 64, 2, True)
-        self.conv_56_5 = Bottleneck3(64, 64, 2, True)
-        self.conv_56_6 = Bottleneck3(64, 64, 2, True)
+        self.conv_56_1 = BaseBlock(64, 64, padding=1)
+        self.conv_56_2 = BaseBlock(64, 64, padding=1)
+        self.conv_56_3 = BaseBlock(64, 64, padding=1)
+        self.conv_56_4 = BaseBlock(64, 64, padding=1)
+        self.conv_56_5 = BaseBlock(64, 64, padding=1)
+        self.conv_56_6 = BaseBlock(64, 64, padding=1)
+        self.conv_28_1 = BaseBlock(64, 64, padding=1)
+
+        self.max_pool_56 = nn.MaxPool2d(2, 2)
+        self.max_pool_28 = nn.MaxPool2d(2, 2)
         self.full1 = nn.Linear(184, 68 * 2)
         self.relu = nn.ReLU()
         self.se = nn.Sigmoid()
         self.tanh = nn.Tanh()
-        self.conv_last = nn.Conv2d(64, 68 * 2, kernel_size=56, bias=False, padding=0)
+        self.conv_last = nn.Conv2d(64, 68 * 2, kernel_size=14, bias=False, padding=0)
 
     def forward(self, x):
         # vgg to get feature
@@ -441,12 +446,15 @@ class Point68_residual(nn.Module):
         x = self.conv_second(x)  # 56
         x1 = self.conv_56_1(x)
         x2 = self.conv_56_2(x1)
-        x3 = self.conv_56_3(x2 + x1)
-        x4 = self.conv_56_4(x3 + x2)
-        x5 = self.conv_56_5(x4 + x3)
-        x6 = self.conv_56_6(x5 + x4)
-        o = self.conv_last(x6)
-        o = self.se(o)
+        x3 = self.conv_56_3(x2)
+        x4 = self.conv_56_4(x3)
+        # x5 = self.conv_56_5(x4 + x3)
+        # x6 = self.conv_56_6(x5 + x4)
+        x = self.max_pool_56(x4)
+        x = self.conv_28_1(x)
+        x = self.max_pool_28(x)
+        o = self.conv_last(x)
+        o = self.relu(o)
 
         return o
 

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-model = models.Point68()  # 实例化全连接层
+model = Config.model()  # 实例化全连接层
 if os.path.isfile(Config.MODEL_SAVE_PATH):
     print("loading ...")
     state = torch.load(Config.MODEL_SAVE_PATH)
@@ -26,7 +26,7 @@ torch.set_default_tensor_type(torch.DoubleTensor)
 transforms = torchvision.transforms.Compose(
     [
         # torchvision.transforms.Grayscale(),  # 转灰度图
-        torchvision.transforms.Resize((224, 224)),
+        torchvision.transforms.Resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE)),
         torchvision.transforms.ToTensor(),
     ]
 )  # 定义图像变换以符合网络输入
@@ -68,14 +68,14 @@ while cap.isOpened():
 
     tensor = transforms(image)
 
-    tensor1 = tensor.reshape(1, 3, 224, 224)
+    tensor1 = tensor.reshape(1, 3, Config.IMAGE_SIZE, Config.IMAGE_SIZE)
     pre = model(tensor1)
 
     # util.show(plt,tensor,pre)
     points = util.tensorToPoint(pre.detach())
     for p in points:
-        p[0] = p[0] * Config.IMAGE_SIZE
-        p[1] = p[1] * Config.IMAGE_SIZE
+        p[0] = p[0] * 480
+        p[1] = p[1] * 640
         cv2.circle(img_, (int(p[0]), int(p[1])), point_size, point_color, thickness)
         # cv2.rectangle(img_, (int(-10), int(0)), (int(200), int(300)), (0, 255, 0))
     # frame = cv2.putText(

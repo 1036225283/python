@@ -14,3 +14,17 @@ a = torch.square(a)
 print(a)
 a = torch.sqrt(a)
 print(a)
+
+# 测试梯度和反向传播
+
+x = torch.tensor([2.0], requires_grad=True)
+w = torch.tensor([2.0], requires_grad=True)
+
+y = x ** 2
+z = w * y + 1.0
+
+z.backward()
+
+print(x.grad)
+print(w.grad)
+
