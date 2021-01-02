@@ -77,8 +77,7 @@ def tensorToImage(tensor):
     return image
 
 
-def getFiles():
-    rootdir = "/home/xws/Downloads/300w_cropped/01_Indoor"
+def getFiles(rootdir="/home/xws/Downloads/300w_cropped/01_Indoor"):
     a = []
     list = os.listdir(rootdir)  # 列出文件夹下所有的目录与文件
     for i in range(0, len(list)):

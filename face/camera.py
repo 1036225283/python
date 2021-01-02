@@ -52,10 +52,11 @@ while cap.isOpened():
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     face = face_cascade.detectMultiScale(gray, 1.1, 3)
     img = frame
-    img_ = np.rot90(img, -1).copy()
-    img_ = np.rot90(img_, -1).copy()
-    img_ = np.rot90(img_, -1).copy()
-    img_ = np.rot90(img_, -1).copy()
+    img_ = frame
+    # img_ = np.rot90(img, -1).copy()
+    # img_ = np.rot90(img_, -1).copy()
+    # img_ = np.rot90(img_, -1).copy()
+    # img_ = np.rot90(img_, -1).copy()
     # if len(face) >= 1:
     #     (x, y, w, h) = face[0]
     #     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)

@@ -19,11 +19,11 @@ torch.set_default_tensor_type(torch.DoubleTensor)
 
 def show(model, data, path):
     imgTensor = data[0]
-    X = imgTensor.view(1, 3, 224, 224)
+    X = imgTensor.view(1, 3, Config.IMAGE_SIZE, Config.IMAGE_SIZE)
     testout = model(X)
     points = util.tensorToPoint(testout.cpu().detach())
     for p in points:
-        plt.plot(p[0] * 224, p[1] * 224, "r+")
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r+")
     img = util.tensorToImage(imgTensor)
     plt.imshow(img)
     plt.savefig(path[0].replace("300w_cropped/01_Indoor", "test"))
@@ -36,7 +36,7 @@ paths = util.getFiles()
 
 
 # 加载所有图片,并进行测试,将测试结果保存起来
-model = models.Point68()  # 实例化全连接层
+model = Config.model()  # 实例化全连接层
 model.eval()  # 模型转化为评估模式
 if os.path.exists(Config.MODEL_SAVE_PATH):
     print("loading ...")
