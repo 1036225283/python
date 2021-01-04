@@ -243,7 +243,46 @@ class Point68_y(nn.Module):
         # X = self.full1(X)
         # X = self.se(X)
         X = self.conv_last(x3)
-        X = self.se(X)
+        X = self.tanh(X)
+
+        return X
+
+
+class Point68_y1(nn.Module):
+    path = "/home/xws/Downloads/python/python/face/model/point68_y1.pt"
+
+    def __init__(self):
+        super(Point68_y1, self).__init__()
+        self.b1 = BaseBlock(3, 68, 5, 1, 2)
+        self.down_sample = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.bx1 = Bottleneck(68, 68, 1)
+        self.bx1_1 = Bottleneck(68, 68, 1)
+        self.bx2 = Bottleneck(68, 128, 1)
+        self.bx2_1 = Bottleneck(128, 128, 1)
+        self.bx3 = Bottleneck(128, 128, 1)
+        self.bx4 = Bottleneck(128, 128, 1)
+        self.bx5 = Bottleneck(128, 64, 1)
+        self.full1 = nn.Linear(7 * 7 * 64, 68 * 2)
+        self.relu = nn.ReLU()
+        self.se = nn.Sigmoid()
+        self.tanh = nn.Tanh()
+        self.conv_last = nn.Conv2d(128, 68 * 2, kernel_size=7, bias=False, padding=0)
+
+    def forward(self, x):
+        # vgg to get feature
+        x = self.b1(x)  # 416
+        x = self.down_sample(x)  # 208
+        x = self.bx1(x)  # 208
+        x = self.bx1_1(x)  # 208
+        x = self.down_sample(x)  # 104
+        x = self.bx2(x)  # 104
+        x = self.bx2_1(x)  # 104
+        x1 = self.down_sample(x)  # 52
+        x1 = self.bx3(x1)  # 52
+        x2 = self.down_sample(x1)  # 26
+
+        X = self.conv_last(x2)
+        X = self.tanh(X)
 
         return X
 
@@ -459,5 +498,8 @@ class Point68_residual(nn.Module):
         return o
 
 
+# 基础层
+# 输出层1
+# 输出层2
 if __name__ == "__main__":
     test_model()
