@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 import util
+import matrix
 
 
 def test0():
@@ -99,6 +100,55 @@ def test2():
     print(img)
 
 
+# 测试旋转图片和标记数据
+def test3():
+    m = matrix.Matrix()
+
+    # #读取图像到数组中
+    # im = array(Image.open('/home/xws/Downloads/boll.jpeg'))
+    t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
+    img = util.tensorToImage(t[0])
+    # img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+    plt.imshow(img)
+    width = t[1]
+    height = t[2]
+
+    # text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
+    points = util.textToPoint(
+        "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
+    )
+
+    # 将point扩充一下
+    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
+    for i, p in enumerate(points):
+        print("ww", i, p)
+        newpoints[i][0] = p[0]
+        newpoints[i][1] = p[1]
+        newpoints[i][2] = 1
+
+    print(newpoints)
+
+    m.rotation(90)
+    pp = m.dot(newpoints)
+    for i, p in enumerate(pp):
+        print("ww", i, p)
+        points[i][0] = p[0]
+        points[i][1] = p[1]
+
+    # points = util.pointToTensor(points)
+    # points = util.tensorToPoint(points)
+
+    # # 使用红色星状物标记绘制点
+    for p in points:
+        plt.plot(p[0], p[1], "r+")
+
+    # #添加标题，显示绘制的图像
+    plt.show()
+
+    print("this is end")
+
+
 # test1()
-test2()
+# test2()
+test3()
 # load ibug a img and show the point
