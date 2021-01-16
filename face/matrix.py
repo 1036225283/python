@@ -39,18 +39,36 @@ class Matrix:
         self.m = np.dot(self.m, m)
 
     # dot
-    def dot(self, arr):
-        return np.inner(arr, self.m)
+    def dot(self, arr, height, width):
+        center(arr, height, width)
+        a = np.inner(arr, self.m)
+        cartesian(a, height, width)
+        return a
+
+
+# 笛卡尔坐标系->中心坐标系
+def center(arr, height, width):
+    for p in arr:
+        p[0] = p[0] - width / 2
+        p[1] = p[1] - height / 2
+
+
+# 中心坐标系->笛卡尔坐标系
+def cartesian(arr, height, width):
+    for p in arr:
+        p[0] = p[0] + width / 2
+        p[1] = p[1] + height / 2
 
 
 if __name__ == "__main__":
     m = Matrix()
-    # m.translation(2, 2)
-    m.rotation(30)
+    m.translation(3, 3)
+    # m.rotation(30)
+    # m.scale(2, 2)
     w = 1
     a = np.array([[1, 2, w], [3, 4, w], [5, 6, w]])
     # a = np.array([[1, 2, w]])
     # a = np.array([[1], [2], [3]])
 
     # print(np.inner(a, m.m))
-    print(m.dot(a))
+    print(m.dot(a, 0, 0))

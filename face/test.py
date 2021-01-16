@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from torchvision import transforms as tfs
+import torch.nn.functional as F
 
 
 from PIL import Image, ImageDraw
@@ -8,6 +9,7 @@ import torch
 
 import util
 import matrix
+import Config
 
 
 def test0():
@@ -50,15 +52,9 @@ def test0():
     print("this is end")
 
 
-transform = tfs.Compose(
-    [
-        tfs.RandomAffine(
-            degrees=30, translate=(0, 0), scale=(0.9, 1), shear=(2, 3), fillcolor=66
-        )
-    ]
-)
+transform = tfs.Compose([tfs.RandomRotation(degrees=30)])
 
-transform = tfs.Compose(
+transform1 = tfs.Compose(
     [
         tfs.RandomRotation(
             30,
@@ -109,7 +105,13 @@ def test3():
     t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
     img = util.tensorToImage(t[0])
     # img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
-    plt.imshow(img)
+
+    path = "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
+    img = Image.open(path)
+    new_img = transform(img)
+    new_img = tfs.functional.rotate(img, -30)
+    plt.imshow(new_img)
+
     width = t[1]
     height = t[2]
 
@@ -117,6 +119,16 @@ def test3():
     points = util.textToPoint(
         "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
     )
+
+    # 将point转换成百分比
+    # for p in points:
+    #     p[0] = p[0] / width
+    #     p[1] = p[1] / height
+
+    # 将point按照照片实际比例进行放大
+    # for p in points:
+    #     p[0] = p[0] * Config.IMAGE_SIZE
+    #     p[1] = p[1] * Config.IMAGE_SIZE
 
     # 将point扩充一下
     newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
@@ -128,8 +140,8 @@ def test3():
 
     print(newpoints)
 
-    m.rotation(90)
-    pp = m.dot(newpoints)
+    m.rotation(30)
+    pp = m.dot(newpoints, height, width)
     for i, p in enumerate(pp):
         print("ww", i, p)
         points[i][0] = p[0]
