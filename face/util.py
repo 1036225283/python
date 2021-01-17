@@ -6,6 +6,7 @@ import torch
 import os
 import time
 import Config
+import matrix
 
 # torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -107,6 +108,40 @@ def loadOneIBUG(path):
     return (imgTensor, pointTensor)
 
 
+# 对图像进行旋转
+def rorateData(img, points, height, width, angle):
+    new_img = tfs.functional.rotate(img, -angle)
+    m = matrix.Matrix()
+    m.rotation(angle)
+
+    #
+    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
+    for i, p in enumerate(points):
+        newpoints[i][0] = p[0]
+        newpoints[i][1] = p[1]
+        newpoints[i][2] = 1
+
+    pp = m.dot(newpoints, height, width)
+    for i, p in enumerate(pp):
+        points[i][0] = p[0] / width
+        points[i][1] = p[1] / height
+
+    pointTensor = pointToTensor(points)
+
+    new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(new_img)
+    return (imgTensor.type(torch.DoubleTensor), pointTensor)
+
+
+# 进行数据增强
+def loadTheIBUG(path, angle):
+    img = Image.open(path[0])
+    width = img.size[0]
+    height = img.size[1]
+    points = textToPoint(path[1])
+    return rorateData(img, points, height, width, angle)
+
+
 def loadIBUG(paths):
     datas = []
     for path in paths:
@@ -118,6 +153,24 @@ def loadIBUG(paths):
         if data[0].size()[0] != 3:
             continue
         # print(data[0].size()[0])
+        datas.append(data)
+
+        data = loadTheIBUG(path, 30)
+        datas.append(data)
+
+        data = loadTheIBUG(path, 60)
+        datas.append(data)
+
+        data = loadTheIBUG(path, 90)
+        datas.append(data)
+
+        data = loadTheIBUG(path, 120)
+        datas.append(data)
+
+        data = loadTheIBUG(path, 150)
+        datas.append(data)
+
+        data = loadTheIBUG(path, 180)
         datas.append(data)
     return datas
 
@@ -150,6 +203,18 @@ def show(plt, X, L):
     for p in points:
         plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
     plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
+
+
+def showImgAndPoint(data):
+    imgTensor = data[0]
+    points = data[1]
+    plt.cla()
+    img = tensorToImage(imgTensor)
+    plt.imshow(img)
+    points = points.reshape(68, 2)
+    for p in points:
+        plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
+    plt.show()
 
 
 if __name__ == "__main__":
