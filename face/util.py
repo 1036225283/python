@@ -105,11 +105,11 @@ def loadOneIBUG(path):
         p[0] = p[0] / width
         p[1] = p[1] / height
     pointTensor = pointToTensor(points)
-    return (imgTensor, pointTensor)
+    return (imgTensor, pointTensor, path[0])
 
 
 # 对图像进行旋转
-def rorateData(img, points, height, width, angle):
+def rorateData(path, img, points, height, width, angle):
     new_img = tfs.functional.rotate(img, -angle)
     m = matrix.Matrix()
     m.rotation(angle)
@@ -130,7 +130,7 @@ def rorateData(img, points, height, width, angle):
 
     new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
     imgTensor = pic_strong(new_img)
-    return (imgTensor.type(torch.DoubleTensor), pointTensor)
+    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0])
 
 
 # 进行数据增强
@@ -139,7 +139,7 @@ def loadTheIBUG(path, angle):
     width = img.size[0]
     height = img.size[1]
     points = textToPoint(path[1])
-    return rorateData(img, points, height, width, angle)
+    return rorateData(path, img, points, height, width, angle)
 
 
 def loadIBUG(paths):
@@ -158,17 +158,17 @@ def loadIBUG(paths):
         data = loadTheIBUG(path, 30)
         datas.append(data)
 
-        data = loadTheIBUG(path, 60)
-        datas.append(data)
+        # data = loadTheIBUG(path, 60)
+        # datas.append(data)
 
         data = loadTheIBUG(path, 90)
         datas.append(data)
 
-        data = loadTheIBUG(path, 120)
-        datas.append(data)
+        # data = loadTheIBUG(path, 120)
+        # datas.append(data)
 
-        data = loadTheIBUG(path, 150)
-        datas.append(data)
+        # data = loadTheIBUG(path, 150)
+        # datas.append(data)
 
         data = loadTheIBUG(path, 180)
         datas.append(data)

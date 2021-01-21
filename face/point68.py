@@ -30,11 +30,11 @@ random.seed(seed)  # Python random module.
 
 
 # 加载小批次数据，即将MNIST数据集中的data分成每组batch_size的小块，shuffle指定是否随机读取
-train_loader = Data.DataLoader(
-    dataset=dataset.IBUGDataSet(Config.BATCH_SIZE),
-    batch_size=Config.BATCH_SIZE,
-    shuffle=True,
-)
+# train_loader = Data.DataLoader(
+#     dataset=dataset.IBUGDataSet(Config.BATCH_SIZE),
+#     batch_size=Config.BATCH_SIZE,
+#     shuffle=True,
+# )
 
 
 # load test
@@ -105,27 +105,41 @@ if device != "cpu":
 
 # model = model.cuda()
 
-optimizer = optim.ASGD(model.parameters(), lr=0.0001 * math.e)
+optimizer = optim.ASGD(model.parameters(), lr=0.0002 * math.e)
 ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
 
 # optimizer = optim.SGD(model.parameters(), lr=1 * math.e, momentum=0.9)
 # optimizer = optim.Adam(model.parameters(), lr=0.000005 * math.e)
 loss_fn = torch.nn.MSELoss(reduce=True, size_average=False)
 epoch = 0
+paths = util.getFiles()
+paths_noface = util.getFiles("/home/xws/Downloads/300w_cropped/noface")
+paths = paths + paths_noface
+datas = util.loadIBUG(paths)
+
+# 收集err
+err_list = []
+
 for epoch in range(Config.EPOCH):
+
+    print(err_list)
     print(
         "**************************************************************epoch = ", epoch
     )
+    err_list = []
     train_loss = 0  # 定义训练损失
     model.train()  # 将网络转化为训练模式
     # print("startTime = ", util.getTime())
-    for i, (X, label) in enumerate(train_loader):  # 使用枚举函数遍历train_loader
+    for i, (X, label, path) in enumerate(datas):  # 使用枚举函数遍历train_loader
         if device != "cpu":
             # show(plt, X, label)
-            X = X.cuda()  # 包装tensor用于自动求梯度
+            X = X.cuda()
+            X = X.view(1, 3, 112, 112)
+
             label = label.cuda()
 
-        for x in range(3):
+        err_item = 0
+        for x in range(5):
             optimizer.zero_grad()  # 优化器梯度归零
             out = model(X)  # 正向传播
             # loss1
@@ -145,11 +159,11 @@ for epoch in range(Config.EPOCH):
                 for lp, op in zip(l, o):
                     subx = torch.sub(lp[0], op[0])
                     suby = torch.sub(lp[1], op[1])
-                    subx = subx * 2.5
-                    suby = suby * 2.5
+                    subx = subx * 1.5
+                    suby = suby * 1.5
                     z = torch.square(subx).add(torch.square(suby))
 
-                    z = torch.sqrt(z)
+                    # z = torch.sqrt(z)
                     lossvalue = torch.add(lossvalue, z)
 
             # print("lp = ", z)
@@ -160,14 +174,16 @@ for epoch in range(Config.EPOCH):
             # lossvalue = loss_fn(out, label)
             # print("b ", list(model.conv_last.named_parameters())[0])
             lossvalue.backward()  # 反向转播，刷新梯度值
+            err_item = lossvalue
             optimizer.step()  # 优化器运行一步，注意optimizer搜集的是model的参数
             # print("a ", list(model.conv_last.named_parameters())[0])
             # print("i = ", i)
 
             # 计算损失
             # train_loss += float(lossvalue)
+        err_list.append((err_item, path))
         if i % 10 == 0:
-            # show2(plt, X, label, out)
+            show2(plt, X, label, out)
             print("lossvalue = ", lossvalue)
             test()
             state = {

@@ -1,7 +1,7 @@
 import model as models
 
 
-DATA_SIZE = 140
+DATA_SIZE = 1600
 # DATA_SIZE = 304
 IMAGE_SIZE = 112
 BATCH_SIZE = 1

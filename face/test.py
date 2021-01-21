@@ -151,8 +151,27 @@ def test3():
     # points = util.tensorToPoint(points)
 
     # # 使用红色星状物标记绘制点
+    i = 1
     for p in points:
-        plt.plot(p[0], p[1], "r+")
+        plt.plot(p[0], p[1], "r_")
+        # plt.text(p[0], p[1], i)
+        i = i + 1
+
+    # plt.text(points[8][0], points[8][1], 0)
+    # plt.text(points[17][0], points[17][1], 0)
+    # plt.text(points[26][0], points[26][1], 0)
+    # plt.text(points[27][0], points[27][1], 0)
+    # plt.text(points[33][0], points[33][1], 0)
+    # plt.text(points[48][0], points[48][1], 0)
+    # plt.text(points[54][0], points[54][1], 0)
+
+    # plt.plot(points[8][0], points[8][1], "g|")
+    plt.plot(points[17][0], points[17][1], "g|")
+    plt.plot(points[26][0], points[26][1], "g|")
+    # plt.plot(points[27][0], points[27][1], "g|")
+    plt.plot(points[33][0], points[33][1], "g|")
+    plt.plot(points[48][0], points[48][1], "g|")
+    plt.plot(points[54][0], points[54][1], "g|")
 
     # #添加标题，显示绘制的图像
     plt.show()
