@@ -45,6 +45,10 @@ class Matrix:
         cartesian(a, height, width)
         return a
 
+    # affine_grid
+    def to_theta(self):
+        return np.delete(self.m, -1, 0)
+
 
 # 笛卡尔坐标系->中心坐标系
 def center(arr, height, width):
@@ -72,3 +76,5 @@ if __name__ == "__main__":
 
     # print(np.inner(a, m.m))
     print(m.dot(a, 0, 0))
+    print(m.to_theta())
+    print(np.delete(m.m, -1, 0))
