@@ -242,18 +242,20 @@ def test5():
 
     path = "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
     img = Image.open(path)
-    new_img = pic_strong(img).type(torch.DoubleTensor)
     # imgTensor.type(torch.DoubleTensor)
-    # new_img = tfs.functional.rotate(img, -30)
 
+    scale = 1.2
+    angle = 30
+
+    new_img = tfs.functional.rotate(img, -angle)
+    new_img = pic_strong(new_img).type(torch.DoubleTensor)
     img_torch = new_img
-    # # m.rotation(30)
-    scale = 0.8
+
     m.scale(1 / scale, 1 / scale)
-    # m.rotation(30)
+    # m.rotation(-angle)
 
     m_point.scale(scale, scale)
-    # m_point.rotation(-30)
+    m_point.rotation(angle)
 
     print(m.to_theta())
     print(m_point.to_theta)
@@ -294,9 +296,76 @@ def test5():
     print("this is end")
 
 
+# 测试平移数据
+def test6():
+
+    # #读取图像到数组中
+    t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
+    img = util.tensorToImage(t[0])
+    width = t[1]
+    height = t[2]
+
+    m = matrix.Matrix(height, width)
+    m_point = matrix.Matrix(height, width)
+
+    path = "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
+    img = Image.open(path)
+    # imgTensor.type(torch.DoubleTensor)
+
+    scale = 1.2
+    angle = 30
+    translation = 0.1
+
+    new_img = tfs.functional.rotate(img, -angle)
+    new_img = pic_strong(img).type(torch.DoubleTensor)
+    img_torch = new_img
+
+    # m.scale(1 / scale, 1 / scale)
+    # m.rotation(-angle)
+    m.translation(-translation, -translation)
+    # m_point.scale(scale, scale)
+    # m_point.rotation(angle)
+    m_point.translation_point(translation, translation)
+
+    # theta = torch.tensor([[1, 0, 0.2], [0, 1, -0.4]], dtype=torch.double)
+    theta = torch.from_numpy(m.to_theta())
+    grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), False)
+    output = F.grid_sample(img_torch.unsqueeze(0), grid)
+    new_img_torch = output[0]
+    plt.imshow(new_img_torch.numpy().transpose(1, 2, 0))
+
+    points = util.textToPoint(
+        "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
+    )
+
+    # 将point扩充一下
+    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
+    for i, p in enumerate(points):
+        newpoints[i][0] = p[0]
+        newpoints[i][1] = p[1]
+        newpoints[i][2] = 1
+
+    # m.scale(1, 1)
+    pp = m_point.dot(newpoints)
+    for i, p in enumerate(pp):
+        points[i][0] = p[0]
+        points[i][1] = p[1]
+
+    # 使用红色星状物标记绘制点
+    i = 1
+    for p in points:
+        plt.plot(p[0], p[1], "r_")
+        i = i + 1
+
+    plt.show()
+
+    print("this is end")
+
+
 if __name__ == "__main__":
     # test1()
     # test2()
     # test3()
     # test4()
-    test5()
+    # test5()
+    test6()

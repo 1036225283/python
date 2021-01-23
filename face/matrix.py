@@ -2,11 +2,14 @@
 
 import numpy as np
 import math
+import warnings
 
 
 class Matrix:
-    def __init__(self):
+    def __init__(self, height=1, width=1):
         self.size = 3
+        self.height = height
+        self.width = width
         self.m = np.eye(self.size)
 
     def identity(self):
@@ -33,35 +36,70 @@ class Matrix:
 
     # 平移translation
     def translation(self, x, y):
+        if x > 1:
+            x = 1
+            warnings.warn("translation.x must <= 1.")
+
+        if x < -1:
+            x = -1
+            warnings.warn("translation.x must >= -1.")
+        if y > 1:
+            y = 1
+            warnings.warn("translation.x must <= 1.")
+
+        if y < -1:
+            y = -1
+            warnings.warn("translation.y must >= -1.")
+
         m = np.eye(self.size)
         m[0][2] = x
         m[1][2] = y
         self.m = np.dot(self.m, m)
 
+    # 平移translation
+    def translation_point(self, x, y):
+        if x > 1:
+            x = 1
+            warnings.warn("translation.x must <= 1.")
+
+        if x < -1:
+            x = -1
+            warnings.warn("translation.x must >= -1.")
+        if y > 1:
+            y = 1
+            warnings.warn("translation.x must <= 1.")
+
+        if y < -1:
+            y = -1
+            warnings.warn("translation.y must >= -1.")
+
+        m = np.eye(self.size)
+        m[0][2] = x / 2 * self.width
+        m[1][2] = y / 2 * self.height
+        self.m = np.dot(self.m, m)
+
     # dot
-    def dot(self, arr, height, width):
-        center(arr, height, width)
+    def dot(self, arr):
+        self.center(arr)
         a = np.inner(arr, self.m)
-        cartesian(a, height, width)
+        self.cartesian(a)
         return a
 
     # affine_grid
     def to_theta(self):
         return np.delete(self.m, -1, 0)
 
+    # 笛卡尔坐标系->中心坐标系
+    def center(self, arr):
+        for p in arr:
+            p[0] = p[0] - self.width / 2
+            p[1] = p[1] - self.height / 2
 
-# 笛卡尔坐标系->中心坐标系
-def center(arr, height, width):
-    for p in arr:
-        p[0] = p[0] - width / 2
-        p[1] = p[1] - height / 2
-
-
-# 中心坐标系->笛卡尔坐标系
-def cartesian(arr, height, width):
-    for p in arr:
-        p[0] = p[0] + width / 2
-        p[1] = p[1] + height / 2
+    # 中心坐标系->笛卡尔坐标系
+    def cartesian(self, arr):
+        for p in arr:
+            p[0] = p[0] + self.width / 2
+            p[1] = p[1] + self.height / 2
 
 
 if __name__ == "__main__":
