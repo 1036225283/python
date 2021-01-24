@@ -85,6 +85,12 @@ class Matrix:
         self.cartesian(a)
         return a
 
+    def chagne_height_width(self):
+        v = np.array([[self.height, self.width, 1]])
+        v = self.dot(v)
+        self.height = v[0][0]
+        self.width = v[0][1]
+
     # affine_grid
     def to_theta(self):
         return np.delete(self.m, -1, 0)
@@ -113,6 +119,6 @@ if __name__ == "__main__":
     # a = np.array([[1], [2], [3]])
 
     # print(np.inner(a, m.m))
-    print(m.dot(a, 0, 0))
+    print(m.dot(a))
     print(m.to_theta())
     print(np.delete(m.m, -1, 0))

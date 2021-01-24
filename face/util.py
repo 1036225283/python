@@ -111,7 +111,7 @@ def loadOneIBUG(path):
 # 对图像进行旋转
 def rorateData(path, img, points, height, width, angle):
     new_img = tfs.functional.rotate(img, -angle)
-    m = matrix.Matrix()
+    m = matrix.Matrix(height, width)
     m.rotation(angle)
 
     #
@@ -121,7 +121,32 @@ def rorateData(path, img, points, height, width, angle):
         newpoints[i][1] = p[1]
         newpoints[i][2] = 1
 
-    pp = m.dot(newpoints, height, width)
+    pp = m.dot(newpoints)
+    for i, p in enumerate(pp):
+        points[i][0] = p[0] / width
+        points[i][1] = p[1] / height
+
+    pointTensor = pointToTensor(points)
+
+    new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(new_img)
+    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0])
+
+
+# 对图像进行平移
+def translationData(path, img, points, height, width, angle):
+    new_img = tfs.functional.rotate(img, -angle)
+    m = matrix.Matrix(height, width)
+    m.rotation(angle)
+
+    #
+    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
+    for i, p in enumerate(points):
+        newpoints[i][0] = p[0]
+        newpoints[i][1] = p[1]
+        newpoints[i][2] = 1
+
+    pp = m.dot(newpoints)
     for i, p in enumerate(pp):
         points[i][0] = p[0] / width
         points[i][1] = p[1] / height
