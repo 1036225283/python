@@ -85,6 +85,26 @@ class Matrix:
         self.cartesian(a)
         return a
 
+    # dot point 68
+    def dot_point_68(self, points):
+        newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
+
+        for i, p in enumerate(points):
+            newpoints[i][0] = p[0]
+            newpoints[i][1] = p[1]
+            newpoints[i][2] = 1
+
+        pp = self.dot(newpoints)
+        newpoints = points.copy()
+        for i, p in enumerate(pp):
+            points[i][0] = p[0] / self.width
+            points[i][1] = p[1] / self.height
+
+            newpoints[i][0] = p[0]
+            newpoints[i][1] = p[1]
+
+        return (points, newpoints)
+
     def chagne_height_width(self):
         v = np.array([[self.height, self.width, 1]])
         v = self.dot(v)

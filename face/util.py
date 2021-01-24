@@ -1,4 +1,5 @@
 from torchvision import transforms as tfs
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import numpy as np
@@ -110,23 +111,14 @@ def loadOneIBUG(path):
 
 # 对图像进行旋转
 def rorateData(path, img, points, height, width, angle):
+    points = points.copy()
     new_img = tfs.functional.rotate(img, -angle)
     m = matrix.Matrix(height, width)
     m.rotation(angle)
 
-    #
-    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
-    for i, p in enumerate(points):
-        newpoints[i][0] = p[0]
-        newpoints[i][1] = p[1]
-        newpoints[i][2] = 1
+    points = m.dot_point_68(points)
 
-    pp = m.dot(newpoints)
-    for i, p in enumerate(pp):
-        points[i][0] = p[0] / width
-        points[i][1] = p[1] / height
-
-    pointTensor = pointToTensor(points)
+    pointTensor = pointToTensor(points[0])
 
     new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
     imgTensor = pic_strong(new_img)
@@ -134,28 +126,66 @@ def rorateData(path, img, points, height, width, angle):
 
 
 # 对图像进行平移
-def translationData(path, img, points, height, width, angle):
+def translationData(path, img, points, height, width, x, y):
+    imgTensor = pic_strong(img)
+    m = matrix.Matrix(height, width)
+    m_point = matrix.Matrix(height, width)
+    m.translation(x, y)
+    m_point.translation_point(x, y)
+    theta = torch.from_numpy(m.to_theta())
+    img_torch = imgTensor
+    grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), False)
+    output = F.grid_sample(img_torch.unsqueeze(0), grid)
+
+    newpoints = m_point.dot_point_68(points)
+    pointTensor = pointToTensor(points)
+
+    new_img = tensorToImage(output)
+    new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(new_img)
+    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0], points)
+
+
+# 对图像进行旋转
+def rorate_op(path, img, points, height, width, angle):
+    new_points = points.copy()
     new_img = tfs.functional.rotate(img, -angle)
     m = matrix.Matrix(height, width)
     m.rotation(angle)
 
-    #
-    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
-    for i, p in enumerate(points):
-        newpoints[i][0] = p[0]
-        newpoints[i][1] = p[1]
-        newpoints[i][2] = 1
+    new_points = m.dot_point_68(new_points)
+    pointTensor = pointToTensor(new_points[0])
 
-    pp = m.dot(newpoints)
-    for i, p in enumerate(pp):
-        points[i][0] = p[0] / width
-        points[i][1] = p[1] / height
+    out_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(out_img)
+    return (
+        imgTensor.type(torch.DoubleTensor),
+        pointTensor,
+        path[0],
+        new_img,
+        new_points[1],
+    )
 
+
+# 对图像进行平移
+def translation_op(path, img, points, height, width, x, y):
+    imgTensor = pic_strong(img)
+    m = matrix.Matrix(height, width)
+    m_point = matrix.Matrix(height, width)
+    m.translation(x, y)
+    m_point.translation_point(x, y)
+    theta = torch.from_numpy(m.to_theta())
+    img_torch = imgTensor
+    grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), False)
+    output = F.grid_sample(img_torch.unsqueeze(0), grid)
+
+    newpoints = m_point.dot_point_68(points)
     pointTensor = pointToTensor(points)
 
+    new_img = tensorToImage(output)
     new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
     imgTensor = pic_strong(new_img)
-    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0])
+    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0], points)
 
 
 # 进行数据增强
@@ -164,6 +194,9 @@ def loadTheIBUG(path, angle):
     width = img.size[0]
     height = img.size[1]
     points = textToPoint(path[1])
+    item = rorate_op(path, img, points, height, width, angle)
+    showImgTensorAndPoint((item[0], item[1]))
+    showImgAndPoint((item[3], item[4], height, width))
     return rorateData(path, img, points, height, width, angle)
 
 
@@ -230,7 +263,7 @@ def show(plt, X, L):
     plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
 
 
-def showImgAndPoint(data):
+def showImgTensorAndPoint(data):
     imgTensor = data[0]
     points = data[1]
     plt.cla()
@@ -239,6 +272,18 @@ def showImgAndPoint(data):
     points = points.reshape(68, 2)
     for p in points:
         plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
+    plt.show()
+
+
+def showImgAndPoint(data):
+    img = data[0]
+    points = data[1]
+    plt.cla()
+    plt.imshow(img)
+    points = points.reshape(68, 2)
+    for p in points:
+        plt.plot(p[0], p[1], "r.")
+        pass
     plt.show()
 
 
