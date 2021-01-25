@@ -181,7 +181,7 @@ for epoch in range(Config.EPOCH):
 
             # 计算损失
             # train_loss += float(lossvalue)
-        err_list.append((err_item, path))
+        # err_list.append((err_item, path))
         if i % 10 == 0:
             show2(plt, X, label, out)
             print("lossvalue = ", lossvalue)

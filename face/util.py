@@ -223,23 +223,27 @@ def scale_op(path, img, points, height, width, x, y):
 
 # 进行数据增强
 def loadTheIBUG(path, angle):
+    data = []
     img = Image.open(path[0])
     width = img.size[0]
     height = img.size[1]
     points = textToPoint(path[1])
-    # item = rorate_op(path, img, points, height, width, angle)
-    # showImgTensorAndPoint((item[0], item[1]))
+
+    item = translation_op(path, img, points, height, width, 0.03, 0.03)
+    # showImgTensorAndPointTensor((item[0], item[1]))
     # showImgAndPoint((item[3], item[4], height, width))
+    data.append((item[0], item[1], path[0]))
+    item = rorate_op(path, item[3], item[4], height, width, angle)
+    # showImgTensorAndPointTensor((item[0], item[1]))
+    # showImgAndPoint((item[3], item[4], height, width))
+    data.append((item[0], item[1], path[0]))
 
-    item = translation_op(path, img, points, height, width, 0.1, 0.1)
-    showImgTensorAndPoint((item[0], item[1]))
-    showImgAndPoint((item[3], item[4], height, width))
+    item = scale_op(path, item[3], item[4], height, width, 1.1, 1.1)
+    # showImgTensorAndPointTensor((item[0], item[1]))
+    # showImgAndPoint((item[3], item[4], height, width))
+    data.append((item[0], item[1], path[0]))
 
-    item = scale_op(path, img, points, height, width, 1.3, 1.3)
-    showImgTensorAndPoint((item[0], item[1]))
-    showImgAndPoint((item[3], item[4], height, width))
-
-    return rorateData(path, img, points, height, width, angle)
+    return data
 
 
 def loadIBUG(paths):
@@ -256,13 +260,13 @@ def loadIBUG(paths):
         datas.append(data)
 
         data = loadTheIBUG(path, 30)
-        datas.append(data)
+        datas.extend(data)
 
         # data = loadTheIBUG(path, 60)
         # datas.append(data)
 
         data = loadTheIBUG(path, 90)
-        datas.append(data)
+        datas.extend(data)
 
         # data = loadTheIBUG(path, 120)
         # datas.append(data)
@@ -271,7 +275,7 @@ def loadIBUG(paths):
         # datas.append(data)
 
         data = loadTheIBUG(path, 180)
-        datas.append(data)
+        datas.extend(data)
     return datas
 
 
@@ -305,12 +309,13 @@ def show(plt, X, L):
     plt.savefig("/home/xws/Downloads/python/python/face/img/test0.png")
 
 
-def showImgTensorAndPoint(data):
+def showImgTensorAndPointTensor(data):
     imgTensor = data[0]
     points = data[1]
     plt.cla()
     img = tensorToImage(imgTensor)
     plt.imshow(img)
+    points = tensorToPoint(points)
     points = points.reshape(68, 2)
     for p in points:
         plt.plot(p[0] * Config.IMAGE_SIZE, p[1] * Config.IMAGE_SIZE, "r.")
