@@ -98,13 +98,17 @@ def test2():
 
 # 测试旋转图片和标记数据
 def test3():
-    m = matrix.Matrix()
 
     # #读取图像到数组中
     # im = array(Image.open('/home/xws/Downloads/boll.jpeg'))
     t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
     img = util.tensorToImage(t[0])
     # img = plt.imread("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.png")
+    width = t[1]
+    height = t[2]
+
+    m = matrix.Matrix(height, width)
+    m.rotation(30)
 
     path = "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
     img = Image.open(path)
@@ -112,43 +116,12 @@ def test3():
     new_img = tfs.functional.rotate(img, -30)
     plt.imshow(new_img)
 
-    width = t[1]
-    height = t[2]
-
     # text = util.readText("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_300.pts")
     points = util.textToPoint(
         "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
     )
 
-    # 将point转换成百分比
-    # for p in points:
-    #     p[0] = p[0] / width
-    #     p[1] = p[1] / height
-
-    # 将point按照照片实际比例进行放大
-    # for p in points:
-    #     p[0] = p[0] * Config.IMAGE_SIZE
-    #     p[1] = p[1] * Config.IMAGE_SIZE
-
-    # 将point扩充一下
-    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
-    for i, p in enumerate(points):
-        print("ww", i, p)
-        newpoints[i][0] = p[0]
-        newpoints[i][1] = p[1]
-        newpoints[i][2] = 1
-
-    print(newpoints)
-
-    m.rotation(30)
-    pp = m.dot(newpoints, height, width)
-    for i, p in enumerate(pp):
-        print("ww", i, p)
-        points[i][0] = p[0]
-        points[i][1] = p[1]
-
-    # points = util.pointToTensor(points)
-    # points = util.tensorToPoint(points)
+    points = m.dot_point_68(points)[1]
 
     # # 使用红色星状物标记绘制点
     i = 1
@@ -181,11 +154,13 @@ def test3():
 
 # 测试缩放数据
 def test4():
-    m = matrix.Matrix()
 
     # #读取图像到数组中
     t = util.imageToTensor("/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png")
     img = util.tensorToImage(t[0])
+    width = t[1]
+    height = t[2]
+    m = matrix.Matrix(height, width)
 
     path = "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
     img = Image.open(path)
@@ -194,9 +169,6 @@ def test4():
     new_img = tfs.functional.resize(img, [400, 400], Image.BICUBIC)
     plt.imshow(img)
     plt.imshow(new_img)
-
-    width = t[1]
-    height = t[2]
 
     points = util.textToPoint(
         "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
@@ -214,7 +186,7 @@ def test4():
 
     m.rotation(30)
     # m.scale(1, 1)
-    pp = m.dot(newpoints, height, width)
+    pp = m.dot(newpoints)
     for i, p in enumerate(pp):
         print("ww", i, p)
         points[i][0] = p[0]
@@ -261,7 +233,7 @@ def test5():
     m_point.rotation(angle)
 
     print(m.to_theta())
-    print(m_point.to_theta)
+    print(m_point.to_theta())
     theta = torch.from_numpy(m.to_theta())
     grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), True)
     output = F.grid_sample(img_torch.unsqueeze(0), grid)
@@ -272,24 +244,11 @@ def test5():
         "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
     )
 
-    # 将point扩充一下
-    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
-    for i, p in enumerate(points):
-        newpoints[i][0] = p[0]
-        newpoints[i][1] = p[1]
-        newpoints[i][2] = 1
-
-    # m.scale(1, 1)
-    pp = m_point.dot(newpoints)
-    for i, p in enumerate(pp):
-        points[i][0] = p[0]
-        points[i][1] = p[1]
+    points = m_point.dot_point_68(points)[1]
 
     # 使用红色星状物标记绘制点
-    i = 1
     for p in points:
         plt.plot(p[0], p[1], "r_")
-        i = i + 1
 
     plt.show()
 
@@ -340,18 +299,7 @@ def test6():
         "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.pts"
     )
 
-    # 将point扩充一下
-    newpoints = np.arange(68 * 3, dtype=float).reshape(68, 3)
-    for i, p in enumerate(points):
-        newpoints[i][0] = p[0]
-        newpoints[i][1] = p[1]
-        newpoints[i][2] = 1
-
-    # m.scale(1, 1)
-    pp = m_point.dot(newpoints)
-    for i, p in enumerate(pp):
-        points[i][0] = p[0]
-        points[i][1] = p[1]
+    points = m_point.dot_point_68(points)[1]
 
     # 使用红色星状物标记绘制点
     i = 1
@@ -441,6 +389,6 @@ if __name__ == "__main__":
     # test2()
     # test3()
     # test4()
-    # test5()
-    test6()
+    test5()
+    # test6()
     # test7()

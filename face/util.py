@@ -172,20 +172,53 @@ def translation_op(path, img, points, height, width, x, y):
     imgTensor = pic_strong(img)
     m = matrix.Matrix(height, width)
     m_point = matrix.Matrix(height, width)
-    m.translation(x, y)
+    m.translation(-x, -y)
     m_point.translation_point(x, y)
     theta = torch.from_numpy(m.to_theta())
-    img_torch = imgTensor
+    img_torch = imgTensor.type(torch.DoubleTensor)
     grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), False)
     output = F.grid_sample(img_torch.unsqueeze(0), grid)
 
     newpoints = m_point.dot_point_68(points)
-    pointTensor = pointToTensor(points)
+    pointTensor = pointToTensor(newpoints[0])
 
     new_img = tensorToImage(output)
-    new_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
-    imgTensor = pic_strong(new_img)
-    return (imgTensor.type(torch.DoubleTensor), pointTensor, path[0], points)
+    out_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(out_img)
+    return (
+        imgTensor.type(torch.DoubleTensor),
+        pointTensor,
+        path[0],
+        new_img,
+        newpoints[1],
+    )
+
+
+# 对图像进行缩放
+def scale_op(path, img, points, height, width, x, y):
+    imgTensor = pic_strong(img)
+    m = matrix.Matrix(height, width)
+    m_point = matrix.Matrix(height, width)
+    m.scale(1 / x, 1 / y)
+    m_point.scale(x, y)
+    theta = torch.from_numpy(m.to_theta())
+    img_torch = imgTensor.type(torch.DoubleTensor)
+    grid = F.affine_grid(theta.unsqueeze(0), img_torch.unsqueeze(0).size(), False)
+    output = F.grid_sample(img_torch.unsqueeze(0), grid)
+
+    newpoints = m_point.dot_point_68(points)
+    pointTensor = pointToTensor(newpoints[0])
+
+    new_img = tensorToImage(output)
+    out_img = new_img.resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    imgTensor = pic_strong(out_img)
+    return (
+        imgTensor.type(torch.DoubleTensor),
+        pointTensor,
+        path[0],
+        new_img,
+        newpoints[1],
+    )
 
 
 # 进行数据增强
@@ -194,9 +227,18 @@ def loadTheIBUG(path, angle):
     width = img.size[0]
     height = img.size[1]
     points = textToPoint(path[1])
-    item = rorate_op(path, img, points, height, width, angle)
+    # item = rorate_op(path, img, points, height, width, angle)
+    # showImgTensorAndPoint((item[0], item[1]))
+    # showImgAndPoint((item[3], item[4], height, width))
+
+    item = translation_op(path, img, points, height, width, 0.1, 0.1)
     showImgTensorAndPoint((item[0], item[1]))
     showImgAndPoint((item[3], item[4], height, width))
+
+    item = scale_op(path, img, points, height, width, 1.3, 1.3)
+    showImgTensorAndPoint((item[0], item[1]))
+    showImgAndPoint((item[3], item[4], height, width))
+
     return rorateData(path, img, points, height, width, angle)
 
 

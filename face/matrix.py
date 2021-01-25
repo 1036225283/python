@@ -95,15 +95,16 @@ class Matrix:
             newpoints[i][2] = 1
 
         pp = self.dot(newpoints)
-        newpoints = points.copy()
+        real_points = points.copy()
+        label_points = points.copy()
         for i, p in enumerate(pp):
-            points[i][0] = p[0] / self.width
-            points[i][1] = p[1] / self.height
+            label_points[i][0] = p[0] / self.width
+            label_points[i][1] = p[1] / self.height
 
-            newpoints[i][0] = p[0]
-            newpoints[i][1] = p[1]
+            real_points[i][0] = p[0]
+            real_points[i][1] = p[1]
 
-        return (points, newpoints)
+        return (label_points, real_points)
 
     def chagne_height_width(self):
         v = np.array([[self.height, self.width, 1]])
