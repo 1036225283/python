@@ -38,7 +38,7 @@ random.seed(seed)  # Python random module.
 
 
 # load test
-testTensor = util.imageToTensor("/home/xws/Downloads/test.jpeg")
+testTensor = util.imageToTensor("/home/xws/Downloads/camera/23.jpeg")
 # testTensor = util.imageToTensor(
 #     "/home/xws/Downloads/300w_cropped/01_Indoor/indoor_001.png"
 # )
@@ -105,7 +105,7 @@ if device != "cpu":
 
 # model = model.cuda()
 
-optimizer = optim.ASGD(model.parameters(), lr=0.0002 * math.e)
+optimizer = optim.ASGD(model.parameters(), lr=0.0001 * math.e)
 ExpLR = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
 
 # optimizer = optim.SGD(model.parameters(), lr=1 * math.e, momentum=0.9)
@@ -150,8 +150,8 @@ for epoch in range(Config.EPOCH):
             # loss2
             label = label.view(-1, 68, 2)
             out = out.view(-1, 68, 2)
-            label1 = label * 1.5
-            out1 = out * 1.5
+            label1 = label * 2.5
+            out1 = out * 2.5
             lossvalue = torch.zeros(1).cuda()
             for l, o in zip(label1, out1):
 
@@ -159,8 +159,8 @@ for epoch in range(Config.EPOCH):
                 for lp, op in zip(l, o):
                     subx = torch.sub(lp[0], op[0])
                     suby = torch.sub(lp[1], op[1])
-                    subx = subx * 1.5
-                    suby = suby * 1.5
+                    subx = subx
+                    suby = suby
                     z = torch.square(subx).add(torch.square(suby))
 
                     # z = torch.sqrt(z)
@@ -184,7 +184,7 @@ for epoch in range(Config.EPOCH):
         # err_list.append((err_item, path))
         if i % 10 == 0:
             show2(plt, X, label, out)
-            print("lossvalue = ", lossvalue)
+            print("lossvalue = ", lossvalue, "path = ", path)
             test()
             state = {
                 "net": model.state_dict(),

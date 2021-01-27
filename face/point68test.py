@@ -27,8 +27,8 @@ def show(model, data, path):
     img = util.tensorToImage(imgTensor)
     plt.imshow(img)
     plt.savefig(path[0].replace("300w_cropped/01_Indoor", "test"))
+    # plt.show()
     plt.cla()
-    plt.imshow(img)
 
 
 # load all image

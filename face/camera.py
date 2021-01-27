@@ -43,6 +43,7 @@ point_size = 1
 point_color = (0, 0, 255)  # BGR
 thickness = 4  # 可以为 0 、4、8
 
+camera_index = 0
 
 # opencv自带的一个面部识别分类器
 while cap.isOpened():
@@ -65,10 +66,17 @@ while cap.isOpened():
     # img = img.astype(np.uint8)
 
     image = Image.fromarray(img)
-    # img.show()
-
+    # plt.imshow(image)
+    # plt.savefig("/home/xws/Downloads/camera/" + str(camera_index))
+    # plt.show()
+    # plt.cla()
+    camera_index = camera_index + 1
     tensor = transforms(image)
-
+    img = util.tensorToImage(tensor)
+    plt.imshow(img)
+    plt.savefig("/home/xws/Downloads/camera/" + str(camera_index) + ".jpeg")
+    plt.show()
+    plt.cla()
     tensor1 = tensor.reshape(1, 3, Config.IMAGE_SIZE, Config.IMAGE_SIZE)
     pre = model(tensor1)
 

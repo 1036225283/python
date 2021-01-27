@@ -1,3 +1,4 @@
 *.pyc
 face/*.png
 face/img/*
+face/model/*.pt
